@@ -1,0 +1,14 @@
+# DICOM 处理
+pydicom>=2.4.0
+SimpleITK>=2.3.0
+dicom2jpg>=0.1.5
+
+# 图片处理
+Pillow>=10.0.0
+
+# PDF 报告生成
+reportlab>=4.0.0
+
+# Real-ESRGAN 超分辨率增强（可选）
+# 若需启用超分增强，请安装 realesrgan：
+# pip install realesrgan basicsr facexlib gfpgan

@@ -1,0 +1,167 @@
+{
+	"skill_name": "dicom-doctor",
+	"evals": [
+		{
+			"id": 1,
+			"prompt": "请使用 dicom-doctor skill 帮我分析这些胸部CT的DICOM文件: input/chest_ct.zip，我想看看有没有肺结节或其他异常",
+			"expected_output": "应创建 dicom_output_<时间戳>/ 目录，将 DICOM 转换为 PNG（含肺窗、纵隔窗、GGO窗三个版本），AI 逐张全量阅片（不得抽样），最终生成包含检查所见、异常影像展示、Lung-RADS 分类和随访建议的 PDF 报告和 Markdown 报告",
+			"files": [
+				"input/chest_ct.zip"
+			],
+			"expectations": [
+				"创建了以 dicom_output_YYYYMMDD_HHMMSS 格式命名的统一输出目录",
+				"调用了 scripts/main.py 且传入了 --output 参数指向统一输出目录",
+				"PNG 文件正确输出到 png/ 子目录下（含 lung/、mediastinum/、ggo/ 子目录）",
+				"AI 对全部 PNG 图片进行了逐层确认式全量阅片（逐张检视+每张输出结论），严格禁止采用抽样或跳过方式",
+				"阅片过程中没有中途停止询问用户是否继续",
+				"将阅片结果保存为 JSON 文件（review_results.json）",
+				"调用了 generate_report.py 从阅片结果 JSON 生成 PDF 报告",
+				"生成了 PDF 格式的影像检查报告（.pdf 文件），报告格式严格对标 references/AI_chest_CT_report_template.pdf 模板，内容完整且非空",
+				"生成了 Markdown 格式的报告（.md 文件）",
+				"报告包含 Lung-RADS 分类和随访建议",
+				"每张图片同时检视了肺窗、纵隔窗和 GGO 窗三个版本",
+				"阅片开始时公布了切片总数和预计批次数，每批完成后报告了进度"
+			]
+		},
+		{
+			"id": 2,
+			"prompt": "帮我分析这个腹部CT文件 input/abdomen_scan.dcm，指定影像类型为腹部CT",
+			"expected_output": "应使用 --imaging-type abdomen_ct 参数，应用 LI-RADS 分级系统，检测肝胆胰脾肾等占位性病变，生成对应的 PDF 报告",
+			"files": [
+				"input/abdomen_scan.dcm"
+			],
+			"expectations": [
+				"调用了 --imaging-type abdomen_ct 参数",
+				"创建了统一输出目录并通过 --output 参数传递",
+				"报告中包含腹部CT相关的检查所见（肝胆胰脾肾等）",
+				"报告中使用了 LI-RADS 分级系统",
+				"生成了 PDF 格式报告"
+			]
+		},
+		{
+			"id": 3,
+			"prompt": "请用 dicom-doctor skill 分析 input/chest_ct.zip，启用MIP重建和超分增强（4x放大），输出所有窗口版本",
+			"expected_output": "应启用 --mip、--enhance --enhance-scale 4、--window all 参数，生成包含 MIP 重建图像、所有窗口版本（肺窗/纵隔窗/GGO窗/骨窗/软组织窗）的 PNG，以及最终的 PDF 报告",
+			"files": [
+				"input/chest_ct.zip"
+			],
+			"expectations": [
+				"调用了 --mip 参数启用 MIP 重建",
+				"调用了 --enhance --enhance-scale 4 启用超分增强",
+				"调用了 --window all 输出所有窗口版本",
+				"所有产物文件归拢到以 dicom_output_ 开头的统一输出目录",
+				"生成了 PDF 格式报告"
+			]
+		},
+		{
+			"id": 4,
+			"skip": true,
+			"skip_reason": "暂无头颅MRI测试DICOM文件",
+			"prompt": "我有一组头颅MRI的DICOM数据在 input/brain_mri_series/，请帮我分析看看脑部有没有异常",
+			"expected_output": "应自动识别为头颅 MRI 或通过 --imaging-type brain_mri 指定，检测脑实质异常信号、占位和脑室扩大等，生成对应的 PDF 报告",
+			"files": [],
+			"expectations": [
+				"自动识别影像类型为头颅 MRI 或手动指定了 --imaging-type brain_mri",
+				"创建了统一输出目录并通过 --output 参数传递",
+				"报告中包含脑部相关的检查所见（脑实质、脑室、占位等）",
+				"全量阅片所有切片，不存在抽样行为",
+				"生成了 PDF 和 Markdown 报告"
+			]
+		},
+		{
+			"id": 5,
+			"prompt": "这个 input/chest_ct.zip 里有一些DICOM文件，我不知道是什么部位的扫描，帮我分析一下",
+			"expected_output": "应自动检测影像类型，如果无法识别则使用通用（generic）模式进行分析，生成通用格式的 PDF 报告",
+			"files": [
+				"input/chest_ct.zip"
+			],
+			"expectations": [
+				"尝试了影像类型自动识别",
+				"无法识别时使用了通用（generic）模式进行兜底分析",
+				"创建了统一输出目录并通过 --output 参数传递",
+				"全量阅片所有切片",
+				"生成了 PDF 格式报告"
+			]
+		},
+		{
+			"id": 6,
+			"prompt": "请分析胸部CT数据 input/岚天-胸部CT-20230602.zip，这份CT的层厚是0.625mm",
+			"expected_output": "CAD 应检出右肺下叶前基底段的2mm实性结节（z≈287-290, HU≈94）。该结节为医院确诊的炎性肉芽肿，是验证 CAD 微小结节检测能力的关键用例。",
+			"files": [
+				"input/岚天-胸部CT-20230602.zip"
+			],
+			"expectations": [
+				"CAD 预检输出 cad_candidates.json，实性候选中包含 z≈287-290 的 2mm 结节",
+				"该结节评分 ≥0.9（高度可疑）",
+				"该结节在实性候选中排名前5",
+				"CAD 标注图正确标记了该结节位置",
+				"全量阅片验证并确认了该 CAD 候选",
+				"最终报告中包含右肺下叶前基底段约2mm实性结节的描述",
+				"报告中给出了 Lung-RADS 分类和随访建议"
+			],
+			"ground_truth": {
+				"source": "南方医科大学深圳医院 2023-06-02 多排螺旋CT检查诊断报告单",
+				"finding": "右肺下叶前基底段(序列5, 图像285-287)实性结节，大小约为2mm×2mm",
+				"diagnosis": "炎性肉芽肿",
+				"patient_info": "男，45岁"
+			}
+		},
+		{
+			"id": 7,
+			"prompt": "请分析胸部CT数据 input/岚天-胸部CT-20260110.zip，这份CT的层厚是1.25mm（比标准薄层重建厚一倍）",
+			"expected_output": "CAD 应正确处理厚层CT数据并检出4个结节。v1.9.0 启用 binary_closing + 密度峰值提取，提升厚层CT微小结节检出率。",
+			"files": [
+				"input/岚天-胸部CT-20260110.zip"
+			],
+			"expectations": [
+				"CAD 正确处理1.25mm层厚的CT数据",
+				"厚层CT启用binary_closing和密度峰值提取",
+				"GT1: 左肺上叶GGO 4mm (InstanceNumber 218-221) 被GGO候选检出",
+				"GT2: 右肺中叶实性 3mm (InstanceNumber 197-199) 被实性候选检出",
+				"GT3: 右肺下叶前基底段实性 2mm (InstanceNumber 152-154) 被实性候选检出",
+				"CAD 标注图正确显示候选结节位置",
+				"全量阅片覆盖所有切片"
+			],
+			"ground_truth": {
+				"source": "南方医科大学深圳医院 2026-01-10 多排螺旋CT检查诊断报告单",
+				"findings": [
+					{
+						"label": "GT1",
+						"description": "左肺上叶下舌段近斜裂下磨玻璃结节",
+						"location": "序列5,图像218-221",
+						"size": "4mm×3mm",
+						"type": "GGO",
+						"classification": "待观察"
+					},
+					{
+						"label": "GT2",
+						"description": "右肺中叶内段实性结节",
+						"location": "序列5,图像197-199",
+						"size": "3mm×2mm",
+						"type": "实性",
+						"classification": "Lung-RADS 2类"
+					},
+					{
+						"label": "GT3",
+						"description": "右肺下叶前基底段实性结节",
+						"location": "序列5,图像152-154",
+						"size": "2mm×2mm",
+						"type": "实性",
+						"classification": "Lung-RADS 2类"
+					},
+					{
+						"label": "GT4",
+						"description": "左肺下叶背段实性结节",
+						"location": "序列5,图像140-141",
+						"size": "2mm×1mm",
+						"type": "实性",
+						"classification": "Lung-RADS 2类",
+						"note": "极微小结节(2mm×1mm)与血管粘连，传统CAD检出困难，需依赖AI视觉阅片补充检出"
+					}
+				],
+				"instance_to_zindex_note": "InstanceNumber 与 SimpleITK z-index 为反向关系: z-index = 292 - InstanceNumber",
+				"patient_info": "男，47岁"
+			}
+		}
+	]
+}
