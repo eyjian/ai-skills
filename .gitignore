@@ -205,3 +205,18 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# CodeBuddy
+.codebuddy
+
+# Cusor
+.cursor
+
+# Claude
+.claude
+
+# Trae
+.trae
+
+# Lingma
+.lingma
