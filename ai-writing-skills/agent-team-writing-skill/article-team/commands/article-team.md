@@ -1,5 +1,5 @@
 ---
-description: 启动文章编写 Agent Team（支持 AI 类文章与通用文章的新稿创作、旧稿重审 / 回炉、旧稿直接润色），5 个 Agent 以网状拓扑协作，可互相对话和自主决策；当用户给出 Markdown 文件路径并希望团队自动判断该先审稿、先处理开篇 / 引言、先处理结构还是直接收尾时优先使用
+description: 启动文章编写 Agent Team（支持 AI、健康、跑步及其他可配置领域的新稿创作、旧稿重审 / 回炉、旧稿直接润色），5 个 Agent 以网状拓扑协作，可互相对话和自主决策；当用户给出 Markdown 文件路径并希望团队自动判断该先审稿、先处理开篇 / 引言、先处理结构还是直接收尾时优先使用。执行前先解析共享领域画像，得到 `topic_domain`、`effective_profile` 和 `resolved_mode`，再按画像启动合适的成员。
 argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改稿需求，例如：Agent 编排模式对比、写一篇关于久坐恢复活动量的健康文章、写一篇关于半马训练安排的跑步文章、重审 docs/agent-orchestration.md、润色 article.md 降低 AI 味、优化 docs/agent-orchestration.md 的开头、重构 docs/agent-orchestration.md 的章节顺序]"
 ---
 
@@ -8,20 +8,41 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 用户需求如下：
 <requirement>$ARGUMENTS</requirement>
 
-## 文章领域识别（先判领域，再判新 / 旧稿）
+## 共享领域画像解析（先解析画像，再判新 / 旧稿）
 
-在创建团队和判定任务模式之前，先判断当前文章应该走哪种写法：
+在创建团队和判定任务模式之前，先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断从“硬编码分流”升级为“画像解析”。
 
-| 写作模式 | 识别信号 | 处理原则 |
-|---------|---------|---------|
-| `AI 专用模式` | 主题明确属于 AI / LLM / Agent / AI 编程 / 模型 / RAG / 提示工程 / AI 工程化等 | 沿用 AI 类文章写法：概念辨析、对比表格、工程细节、官方资料核验，必要时代码 / 架构图 |
-| `通用模式` | 健康、跑步、教育、职场、商业、生活方式等非 AI 主题；或主题模糊、暂不支持、无法稳定判定 | 按通用文章写法：围绕读者问题、判断、步骤、误区、边界和 FAQ / 清单展开，不强制技术表格和代码 |
+最少要解析出以下运行时字段：
+- `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
+- `effective_profile`：当前实际采用的画像；如果用户明确要求“按通用文章写”，可与 `topic_domain` 不同
+- `resolved_mode`：`AI 专用模式` 或 `通用模式`
+- `secondary_domains`：多领域命中时的次级领域，仅用于补充边界、案例和提醒
+- `default_reader`：用户未明确给出读者对象时的默认假设
+- `article_type_candidates`：当前画像更适合的文章类型
+- `role_focus`：当前角色在该画像下应优先关注的事项
 
-判定规则：
-- 能明确识别为 AI 类时，使用 `AI 专用模式`
-- 识别不出、超出当前专长或不适合套 AI 技术结构时，一律回退到 `通用模式`
-- 如果用户明确要求“按通用文章写”，即使主题与 AI 有关，也尊重用户要求
-- 旧稿任务同样需要先判定写作模式，再决定审稿、改稿和润色标准
+解析规则：
+- 先尊重用户明确指定的写法、模式和语气约束
+- 再按配置里的 `signals.keywords` 识别 `topic_domain`
+- 如果命中多个领域，先判断哪个领域最能解释用户真正的问题、风险和读者收益；其余命中项记到 `secondary_domains`
+- 如果用户明确要求按通用文章写，即使主题与 AI 有关，也要把 `effective_profile` 切到 `generic`
+- 拿不准、暂不支持或主题过于模糊时，一律回退到 `generic`
+- 如果画像声明了 `inherits_from`，先合并父画像，再叠加子画像
+
+当前首批画像速查：
+
+| 画像 | mode | 典型用途 |
+|------|------|----------|
+| `ai` | `AI 专用模式` | AI / LLM / Agent / AI 编程 / 模型 / RAG / 提示工程 / AI 工程化等 |
+| `generic` | `通用模式` | 默认通用画像，适用于模糊、暂不支持或无需细分的主题 |
+| `health` | `通用模式` | 继承 `generic`，额外强调适用人群、风险提示和求助边界 |
+| `running` | `通用模式` | 继承 `generic`，额外强调训练安排、调整条件和停止信号 |
+
+编排原则：
+- `resolved_mode` 只决定当前是走 `AI 专用模式` 还是 `通用模式`
+- 具体边界、风险提示、引用策略和角色重点以 `effective_profile` 为准
+- `secondary_domains` 只用于补充边界和案例，不覆盖 primary 画像
+- 后续若要新增领域，优先扩展共享画像配置，而不是在本文件和各角色 prompt 里继续复制规则
 
 ## 输入优先级速查（先按动作词判定，再看文件路径）
 
@@ -45,7 +66,9 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 | 旧稿直接润色模式 | 明确说“只润色 / 发布前打磨 / 降 AI 味 / 终稿处理 / 优化开篇 / 改首段 / 引言更像真人作者”，且目标文章已明确 | `polisher` | 直接收尾；如发现技术问题，再回退给 `reviewer` |
 
 判定规则：
-- 先完成“文章领域识别”，记录 `写作模式`（`AI 专用模式` / `通用模式`）和 `文章领域`（AI / 健康 / 跑步 / 职场 / 其他）
+- 先完成“共享领域画像解析”，记录 `topic_domain`、`effective_profile`、`resolved_mode`、`secondary_domains`
+- 再基于解析结果换算出面向用户展示的 `写作模式`（`AI 专用模式` / `通用模式`）和 `文章领域`（AI / 健康 / 跑步 / 教育 / 职场 / 商业 / 生活方式 / 其他）
+- 如果用户没有明确给出读者对象，优先使用画像里的 `default_reader` 作为工作假设
 - 只要用户给了明确的 Markdown 文件路径，优先按“现有文章”处理，不要误判为新稿创作
 - 如果用户明确说“只润色 / 发布前打磨 / 降 AI 味 / 终稿处理 / 优化开篇 / 改首段 / 引言更像真人作者”，且目标文章明确，优先判定为“旧稿直接润色模式”
 - 如果用户要求里同时包含“审一下再润色”“回炉改一版后收尾”，先从 `reviewer` 开始
@@ -197,11 +220,12 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 
 ## 启动流程
 
-### 第 0 步：先完成领域判定、模式判定和文件确认
+### 第 0 步：先完成画像解析、模式判定和文件确认
 
-- 先判断当前文章的 `写作模式`：`AI 专用模式` 或 `通用模式`
-- 再记录当前 `文章领域`：如 AI、健康、跑步、教育、职场、商业、生活方式或其他
-- 如果用户没有明确给出读者对象，顺手补一个工作假设（例如开发者、泛读者、运动初学者等），并在后续 prompt 中透传
+- 先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，完成 `topic_domain`、`effective_profile`、`resolved_mode`、`secondary_domains`、`default_reader`、`article_type_candidates`、`role_focus` 的解析
+- 再记录面向用户展示的 `写作模式`：`AI 专用模式` 或 `通用模式`
+- 同步记录当前 `文章领域`：如 AI、健康、跑步、教育、职场、商业、生活方式或其他
+- 如果用户没有明确给出读者对象，优先使用 `default_reader` 作为工作假设，并在后续 prompt 中透传
 - 按上面的规则判断当前任务属于：新稿创作、旧稿重审 / 回炉、旧稿直接润色
 - 如果是旧稿模式，优先提取目标文章文件路径，并同步提取动作关键词（重审 / 润色 / 结构重构 / 去 AI 味 / 优化开篇等）
 - 如用户明确强调“优化开篇 / 改首段 / 引言更像真人作者”，把它记录为高优先级约束，优先传给 `polisher`；如 `polisher` 判断涉及结构重构，再回退 `reviewer` / `architect`
@@ -238,11 +262,16 @@ prompt 来自以下文件：`.codebuddy/skills/article-team/agents/scout.md`
 用户需求：$ARGUMENTS
 
 ## 文章领域信息
-- 文章领域：{AI / 健康 / 跑步 / 教育 / 职场 / 其他}
+- topic_domain：{ai / health / running / generic / other}
+- effective_profile：{ai / health / running / generic}
 - 写作模式：{AI 专用模式 / 通用模式}
-- 目标读者：{开发者 / 泛读者 / 运动初学者 / 其他}
-- 如果是 `AI 专用模式`：沿用 AI 类选题标准
-- 如果是 `通用模式`：围绕当前领域给出通用文章选题，不要默认搜索 AI 热点
+- secondary_domains：{若无则写 none}
+- 文章领域：{AI / 健康 / 跑步 / 教育 / 职场 / 其他}
+- 目标读者：{优先用户指定，否则使用 default_reader}
+- 文章类型候选：{article_type_candidates}
+- 当前角色重点：{role_focus.scout.priorities}
+- 如果 `effective_profile = ai`：沿用 AI 类选题标准
+- 如果 `effective_profile != ai`：围绕当前画像给出选题，不要默认搜索 AI 热点
 
 ## 团队成员
 你可以使用 send_message 与以下成员直接沟通：
@@ -280,8 +309,14 @@ prompt 来自以下文件：`.codebuddy/skills/article-team/agents/reviewer.md`
 ## 目标文章
 - 文件路径：{目标 Markdown 文件路径}
 - 处理目标：{重审 / 回炉改稿 / 结构级大改 / 先审后润色 / 仅审稿}
-- 文章领域：{AI / 健康 / 跑步 / 教育 / 职场 / 其他}
+- topic_domain：{ai / health / running / generic / other}
+- effective_profile：{ai / health / running / generic}
 - 写作模式：{AI 专用模式 / 通用模式}
+- secondary_domains：{若无则写 none}
+- 目标读者：{优先用户指定，否则使用 default_reader}
+- 当前角色重点：{role_focus.reviewer.priorities}
+- 如果用户明确要求“重构结构 / 调整章节顺序 / 先给结构方案”，优先联动 architect 输出结构方案，再决定是否让 writer 落稿
+- 如果当前任务明确是“仅审稿”，请把审稿结论发给 main，等待是否继续
 
 ## 团队成员
 你可以使用 send_message 与以下成员直接沟通：
@@ -324,8 +359,14 @@ prompt 来自以下文件：`.codebuddy/skills/article-team/agents/polisher.md`
 ## 目标文章
 - 文件路径：{目标 Markdown 文件路径}
 - 处理目标：{只润色 / 发布前打磨 / 去 AI 味 / 优化开篇 / 改首段 / 终稿检查}
-- 文章领域：{AI / 健康 / 跑步 / 教育 / 职场 / 其他}
+- topic_domain：{ai / health / running / generic / other}
+- effective_profile：{ai / health / running / generic}
 - 写作模式：{AI 专用模式 / 通用模式}
+- secondary_domains：{若无则写 none}
+- 目标读者：{优先用户指定，否则使用 default_reader}
+- 当前角色重点：{role_focus.polisher.priorities}
+- 如果用户重点是“优化开篇 / 改首段”，先处理标题、首段、前 3 段和开篇承诺是否兑现
+- 如果发现技术错误或明显结构漏洞，不要硬改，先回退给 reviewer
 
 ## 团队成员
 你可以使用 send_message 与以下成员直接沟通：
@@ -370,17 +411,23 @@ prompt 来自以下文件：`.codebuddy/skills/article-team/agents/polisher.md`
 
 启动每个成员时，在 prompt 末尾追加：
 - 当前任务模式（新稿创作 / 旧稿重审 / 旧稿直接润色）
+- topic_domain（如 `ai` / `health` / `running` / `generic`）
+- effective_profile（如 `ai` / `health` / `running` / `generic`）
 - 写作模式（AI 专用模式 / 通用模式）
+- secondary_domains（若有）
 - 文章领域（AI / 健康 / 跑步 / 教育 / 职场 / 商业 / 其他）
-- 目标读者（如能推断）
+- 目标读者（如能推断，优先用户指定，否则使用 default_reader）
+- 文章类型候选（article_type_candidates）
+- 当前角色重点（role_focus.{name}.priorities / must_add / must_include / red_flags / avoid，按角色实际存在的字段传）
 - 目标文章文件路径（如有）
 - 用户额外要求（如“降低 AI 味”“不要大改结构”“重点改开篇前 3 段”）
 - 前序成员的产出文件路径、审稿意见、改稿要求或通信摘要
 - 提醒对方沿用其文件中定义的固定视觉签名格式
 
 额外要求：
-- `AI 专用模式` 下，允许成员使用 AI 类文章的对比表格、概念辨析、工程细节和代码 / 架构图套路
-- `通用模式` 下，不要机械要求 3 个对比表格、代码示例或技术架构图；应围绕问题、判断、步骤、误区、边界、FAQ / 清单组织内容
+- `effective_profile = ai` 下，允许成员使用 AI 类文章的对比表格、概念辨析、工程细节和代码 / 架构图套路
+- `effective_profile != ai` 下，不要机械要求 3 个对比表格、代码示例或技术架构图；应围绕问题、判断、步骤、误区、边界、FAQ / 清单组织内容
+- 如果命中 `health`、`running` 等高风险或强边界画像，要把对应画像的风险边界也透传给相关成员
 - 在旧稿模式下启动 `writer` 时，要明确提醒其**基于原文件修改**，除非用户要求，否则不要另起一份新稿
 - 在旧稿模式下启动 `architect` 时，要明确提醒其输出的是**重构方案 / 章节调整建议**，供 `writer` 直接落稿
 

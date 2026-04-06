@@ -1,6 +1,16 @@
-# AI 技术文章编写 Skills 总览
+# 文章编写 Skills 总览
 
-本目录包含两套 Agent 方案，用于辅助 AI 技术文章的创作流程。
+本目录包含两套 Agent 方案，用于辅助**领域画像驱动**的文章创作流程，而不再只是一套“AI 技术文章写作 prompt”。
+
+当前首批画像包括：`ai`、`generic`、`health`、`running`。
+两套 skill 包遵循同一套领域画像 schema，但为了**分别发布、分别安装、分别使用**，各自在自己的目录里内置配置和架构文档，运行时互不依赖。
+
+## 架构文档
+
+- **Sub-Agent 包**：[ARCHITECTURE.md](/data/workspace/github/eyjian/ai-skills/ai-writing-skills/subagent-writing-skills/ARCHITECTURE.md)
+- **Agent Team 包**：[ARCHITECTURE.md](/data/workspace/github/eyjian/ai-skills/ai-writing-skills/agent-team-writing-skill/ARCHITECTURE.md)
+
+后续如果需要增加新领域，优先扩展各包内置的领域画像配置，而不是在每个角色里重复追加硬编码规则。
 
 ---
 
@@ -8,8 +18,8 @@
 
 | 方案 | 类型 | 触发方式 | 适用场景 |
 |------|------|---------|---------|
-| **5 个独立 Skill** | Sub-Agent（你手动驱动） | 分别触发 `/topic-scout`、`/outline-architect` 等 | 既可从零开始写新稿，也可按需处理已有文章的某个环节 |
-| **article-team** | Agent Team（自动协作） | `/article-team {选题方向 / 文章路径 / 改稿需求}` | 新稿从选题写到发布，或让团队接管已有文章的重审 / 改稿 / 润色 |
+| **5 个独立 Skill** | Sub-Agent（你手动驱动） | 分别触发 `/topic-scout`、`/outline-architect` 等 | 既可从零开始写新稿，也可按需处理已有文章的某个环节；执行前先读取**本包内置**的领域画像配置 |
+| **article-team** | Agent Team（自动协作） | `/article-team {选题方向 / 文章路径 / 改稿需求}` | 新稿从选题写到发布，或让团队接管已有文章的重审 / 改稿 / 润色；执行前先解析**本包内置**的领域画像 |
 
 ---
 
@@ -17,6 +27,33 @@
 
 由你充当"协调者"，按需手动调用每个角色。角色之间不互相通信，你控制每一步。
 这套模式既适合从 0 到 1 写新稿，也适合对现有 Markdown 文章做定点处理：例如只重做标题、只重构结构、只改某几章、只审稿或只润色。
+
+## 领域画像架构（各包分别内置）
+
+两套方案遵循同一套领域画像协议，但**不共享运行时文件**，而是在各自包内分别内置一份配置：
+- `subagent-writing-skills/shared-writing-resources/domain-profiles/domain-profiles.json`
+- `agent-team-writing-skill/shared-writing-resources/domain-profiles/domain-profiles.json`
+
+对应的架构说明也分别放在各自目录下：
+- [ARCHITECTURE.md](/data/workspace/github/eyjian/ai-skills/ai-writing-skills/subagent-writing-skills/ARCHITECTURE.md)
+- [ARCHITECTURE.md](/data/workspace/github/eyjian/ai-skills/ai-writing-skills/agent-team-writing-skill/ARCHITECTURE.md)
+
+配置会统一给出：
+- `topic_domain`
+- `effective_profile`
+- `resolved_mode`
+- `secondary_domains`
+- `default_reader`
+- `article_type_candidates`
+- `role_focus`
+
+设计原则：
+- `topic_domain` 表示主题真实所属领域
+- `effective_profile` 表示当前实际采用的画像；当用户明确要求“按通用文章写”时，可与 `topic_domain` 不同
+- 子画像通过 `inherits_from` 继承父画像；角色消费时先合并父画像，再叠加子画像
+- 高风险或强边界领域（如 `health`、`running`）通过画像补充风险提示、停止条件和适用人群要求
+- `shared-writing-resources` 表示**包内共享**，不是跨包共享
+- 两个包在运行时互不依赖；如果希望两边行为保持一致，需要分别同步各自目录下的配置与文档
 
 ### 1. 选题侦察员（topic-scout）
 
@@ -36,7 +73,7 @@
 | **输入** | 确认后的选题 + 补充意见，或现有文章 + 结构问题 |
 | **输出** | 结构化大纲，或现有文章的结构重构方案 |
 | **工具** | `web_search`、`read_file` |
-| **规则** | 每篇至少 3 个对比表格、至少 1 个类比、至少 1 个收藏型结构件、3-5 章、每章不超 3 小节 |
+| **规则** | 结构规则由当前 `effective_profile` 决定：`ai` 画像优先对比表、类比和工程结构件；`generic` / `health` / `running` 画像优先步骤清单、误区表、决策表、FAQ 与风险边界。默认仍建议控制在 3-5 章、每章不超 3 小节 |
 | **下一步** | 新稿场景 → `/draft-writer`；旧稿场景 → `/draft-writer` |
 
 ### 3. 初稿写手（draft-writer）
@@ -47,7 +84,7 @@
 | **输入** | 审批通过的大纲，或现有文章 + 审稿意见 / 重构方案 |
 | **输出** | 完整 Markdown 初稿，或基于原文的局部 / 整体改写结果 |
 | **工具** | `read_file`、`web_search`、`write_to_file` / `replace_in_file` |
-| **风格铁律** | 自然但克制、短句（≤30字）、每段≤5行、禁止学术腔、每篇≥3个对比表格、至少1个可复用结构件 |
+| **风格铁律** | 自然但克制、短句（≤30字）、每段≤5行、禁止学术腔；结构件由当前 `effective_profile` 决定：`ai` 画像优先对比表 / 类比，通用画像优先 FAQ / 清单 / 决策表 / 误区表 / 风险边界 |
 | **下一步** | 新稿完成后 → `/tech-reviewer`；旧稿改完后 → `/tech-reviewer` 或 `/final-polisher` |
 
 ### 4. 技术审稿人（tech-reviewer）
@@ -114,6 +151,7 @@
 ## 方案二：article-team（Agent Team 模式）
 
 一条命令启动整个团队，5 个 Agent 以网状拓扑自动协作。
+执行前会先解析**本包内置**的领域画像，再决定当前该采用哪种写法与协作路径。
 - **新稿创作**：从选题 → 大纲 → 初稿 → 审稿 → 润色
 - **旧稿重审 / 回炉**：对现有 Markdown 文章做重审、改稿、结构级大改和终稿打磨
 - **旧稿直接润色**：对基本成型的文章直接做去 AI 味、统一术语和发布前收尾
@@ -272,6 +310,7 @@
 
 ```
 subagent-writing-skills/                    ← Sub-Agent 模式：5 个独立 Skill
+├── ARCHITECTURE.md                        ← 架构说明（Sub-Agent 包，独立发布）
 ├── topic-scout/SKILL.md                    ← 选题侦察员
 ├── outline-architect/SKILL.md              ← 大纲架构师
 ├── draft-writer/SKILL.md                   ← 初稿写手
@@ -279,6 +318,7 @@ subagent-writing-skills/                    ← Sub-Agent 模式：5 个独立 S
 └── final-polisher/SKILL.md                 ← 终稿润色师
 
 agent-team-writing-skill/                   ← Agent Team 模式：1 个完整团队
+├── ARCHITECTURE.md                        ← 架构说明（Agent Team 包，独立发布）
 └── article-team/
     ├── SKILL.md                            ← 入口（触发描述）
     ├── commands/article-team.md            ← 编排命令（协调者 prompt）
@@ -321,6 +361,8 @@ cp -r agent-team-writing-skill/* .codebuddy/skills/
 
 所有 Skill 和 Agent 共享以下风格约束：
 
+其中语气、句长、段长、克制度属于全局基础风格；对比表、清单、FAQ、误区表、图示等结构件，优先由当前 `effective_profile` 决定。
+
 | 规则 | 说明 |
 |------|------|
 | 自然但克制 | 允许少量口语，但不写成聊天记录或口播脚本 |
@@ -328,10 +370,10 @@ cp -r agent-team-writing-skill/* .codebuddy/skills/
 | 控制人称密度 | 正文尽量少用“我”“你”，必要时优先用“本文”“实践中”“建议”“可”“需”“应” |
 | 短句 | 每句 ≤ 30 字 |
 | 短段 | 每段 ≤ 5 行 |
-| 对比表格 | 每篇至少 3 个 |
-| 善用类比 | 把技术概念映射到生活场景 |
-| 尽量配图 | 流程图、架构图、对比图等，图中文字以中文为主，通用名词保持英文 |
-| 标注引用 | 关键信息标注来源（官方文档、GitHub、论文等） |
+| 结构件选择 | 由当前 `effective_profile` 决定：`ai` 画像优先对比表；通用画像优先 FAQ / 清单 / 决策表 / 误区表 / 适合谁&不适合谁 |
+| 善用类比 | 把抽象概念映射到更易理解的场景；AI 文章偏工程类比，通用文章偏生活或行动类比 |
+| 尽量配图 | 按画像选择：AI 文章更适合流程图、架构图、对比图；通用文章更适合步骤图、判断图、训练表或清单截图 |
+| 标注引用 | 关键信息标注来源（官方文档、GitHub、论文、指南、机构资料等） |
 | 有明确收获 | 读完后要能带走判断、方法、步骤、边界或避坑建议 |
 | 有可复用资产 | 每篇至少产出 1 个 FAQ / 决策表 / 排错表 / 误区清单 / 步骤清单 / 一页总结 |
 | 有传播亮点 | 至少有 1 处适合截图传播的表格、总结块或判断 |

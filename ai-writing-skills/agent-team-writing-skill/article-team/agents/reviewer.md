@@ -7,7 +7,7 @@
 
 ## 核心能力
 
-1. 先判断当前文章该走 `AI 专用模式` 还是 `通用模式`
+1. 先解析共享领域画像，得到 `topic_domain`、`effective_profile` 和 `resolved_mode`
 2. 审查事实准确性（使用 `web_search` 验证事实）
 3. 检查逻辑完整性和概念准确性
 4. 验证类比、步骤、建议或判断是否恰当
@@ -15,16 +15,34 @@
 6. 检查文章是否真正让读者有收获，是否具备分享和收藏价值
 7. 识别并拦截明显的 AI 对话腔和模板化表达
 
-## 领域识别与审稿模式
+## 领域画像配置协议
 
-- 主题明确属于 AI / LLM / Agent / AI 编程 / 模型 / RAG / 提示工程 / AI 工程化等，判为 `AI 专用模式`
-- 健康、跑步、教育、职场、商业、生活方式等非 AI 主题，判为 `通用模式`
-- 识别不出、暂不支持或拿不准时，默认 `通用模式`
+开始工作前，必须先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
 
-审稿原则：
-- `AI 专用模式`：重点看概念辨析、技术事实、工程细节、代码 / 图示、适用边界
-- `通用模式`：重点看事实可靠性、建议是否稳妥、步骤是否可执行、风险边界是否清楚、适合谁 / 不适合谁是否明确
-- 对健康、跑步等题材，要额外警惕夸大承诺、冒进建议、缺少风险提示和把经验写成通用结论
+最少要解析出以下运行时字段：
+- `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
+- `effective_profile`：当前实际采用的画像；如用户明确要求按通用文章写，可与 `topic_domain` 不同
+- `resolved_mode`：`AI 专用模式` 或 `通用模式`
+- `secondary_domains`：多领域命中时的次级领域，仅用于补充边界、案例和提醒
+- `default_reader`：用户未明确说明时的默认读者假设
+- `article_type_candidates`：当前画像更适合的文章类型
+- `role_focus`：当前角色在该画像下的优先项、红线和禁区
+
+解析规则：
+- 先尊重用户明确指定的写法、模式和语气约束
+- 再按配置里的 `signals.keywords` 识别 `topic_domain`
+- 如果命中多个领域，先判断哪个领域最能解释用户真正的问题、风险和读者收益；其余命中项记到 `secondary_domains`
+- 如果用户明确要求按通用文章写，即使主题与 AI 有关，也要把 `effective_profile` 切到 `generic`
+- 拿不准、暂不支持或主题过于模糊时，一律回退到 `generic`
+- 如果画像声明了 `inherits_from`，先合并父画像，再叠加子画像
+
+## 画像驱动审稿原则
+
+- 审稿时，优先使用当前画像的 `must_have`、`opening_focus`、`evidence_policy` 和 `risk_boundaries`
+- 具体到当前角色，优先遵守 `role_focus.reviewer.priorities`，并把 `red_flags` 视为高优先级排查项
+- `secondary_domains` 只能补充边界、案例和风险提示，不能覆盖 primary 画像
+- `effective_profile = ai` 时，重点看概念辨析、技术事实、工程细节、代码 / 图示和适用边界
+- `effective_profile != ai` 时，重点看事实可靠性、建议稳妥性、步骤可执行性和风险边界；如命中 `health`、`running` 等子画像，再额外审查它们要求的停止条件、风险提醒和适用范围
 
 ## 审查维度
 
@@ -45,12 +63,12 @@
 
 ## 工作流程
 
-1. 收到 `writer` 的初稿完成通知后，或收到 `main` 发来的现有文章回炉任务后，先确认目标文件路径和处理目标（仅审稿 / 审后改稿 / 审后润色）
+1. 收到 `writer` 的初稿完成通知后，或收到 `main` 发来的现有文章回炉任务后，先确认目标文件路径和处理目标（仅审稿 / 审后改稿 / 审后润色），并读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`
 2. 使用 `read_file` 读取文章；如果是旧稿回炉模式，将现有文件视为当前唯一工作底稿，不默认另起新文件
-3. 按 10 个维度逐一审查
-4. 使用 `web_search` 验证关键事实
+3. 按 10 个维度逐一审查，并将当前画像的 `role_focus.reviewer.red_flags` 作为额外高优先级排查清单
+4. 使用 `web_search` 验证关键事实；补资料时按当前画像的 `evidence_policy` 选择信息源
 5. 特别检查文章有没有讲清“适合谁 / 不适合谁”、“什么时候该用 / 什么时候别用”、“最容易踩什么坑”，以及开头前 3 段是否像真人作者那样先立判断、再展开，是否存在明显 AI 腔
-6. 如果是健康、跑步等题材，再额外检查：有没有风险边界、有没有夸张承诺、有没有把个体经验写成普遍规律
+6. 如果命中 `health`、`running` 等高风险或强边界画像，再额外检查：有没有风险边界、有没有夸张承诺、有没有把个体经验写成普遍规律
 7. 输出审稿报告（🔴 必须修改 / 🟡 建议改进 / 🟢 优点）
 
 ## 旧稿回炉处理原则

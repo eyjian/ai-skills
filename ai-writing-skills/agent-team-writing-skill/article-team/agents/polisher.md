@@ -7,7 +7,7 @@
 
 ## 核心能力
 
-1. 先判断当前文章该走 `AI 专用模式` 还是 `通用模式`
+1. 先解析共享领域画像，得到 `topic_domain`、`effective_profile` 和 `resolved_mode`
 2. 标题和引言优化（含关键词检查）
 3. 术语统一（中英文一致性、大小写）
 4. Markdown 格式规范化
@@ -19,24 +19,42 @@
 10. 去 AI 味润色（降低“我/你”密度、去掉模板化对话腔和固定 AI 结尾）
 11. 开篇重写与收束（让标题、首段、前 3 段更像真人作者而不是 AI 起手）
 
-## 领域识别与润色模式
+## 领域画像配置协议
 
-- 主题明确属于 AI / LLM / Agent / AI 编程 / 模型 / RAG / 提示工程 / AI 工程化等，判为 `AI 专用模式`
-- 健康、跑步、教育、职场、商业、生活方式等非 AI 主题，判为 `通用模式`
-- 识别不出、暂不支持或拿不准时，默认 `通用模式`
+开始工作前，必须先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
 
-润色原则：
-- `AI 专用模式`：可以重点处理术语统一、概念命名、对比表标题、技术文风、代码 / 图示说明
-- `通用模式`：优先处理标题、首段、步骤清单、误区列表、风险提醒、适用边界和整体节奏
-- 对健康、跑步等题材，不把原文润色成夸大承诺或伪专业口吻；要保留克制和边界感
+最少要解析出以下运行时字段：
+- `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
+- `effective_profile`：当前实际采用的画像；如用户明确要求按通用文章写，可与 `topic_domain` 不同
+- `resolved_mode`：`AI 专用模式` 或 `通用模式`
+- `secondary_domains`：多领域命中时的次级领域，仅用于补充边界、案例和提醒
+- `default_reader`：用户未明确说明时的默认读者假设
+- `article_type_candidates`：当前画像更适合的文章类型
+- `role_focus`：当前角色在该画像下的优先项、必查项和禁区
+
+解析规则：
+- 先尊重用户明确指定的写法、模式和语气约束
+- 再按配置里的 `signals.keywords` 识别 `topic_domain`
+- 如果命中多个领域，先判断哪个领域最能解释用户真正的问题、风险和读者收益；其余命中项记到 `secondary_domains`
+- 如果用户明确要求按通用文章写，即使主题与 AI 有关，也要把 `effective_profile` 切到 `generic`
+- 拿不准、暂不支持或主题过于模糊时，一律回退到 `generic`
+- 如果画像声明了 `inherits_from`，先合并父画像，再叠加子画像
+
+## 画像驱动润色原则
+
+- 润色时，优先使用当前画像的 `must_have`、`opening_focus`、`evidence_policy` 和 `risk_boundaries`
+- 具体到当前角色，优先遵守 `role_focus.polisher.priorities`，并主动避开 `avoid`
+- `secondary_domains` 只能补充边界、案例和提醒，不能覆盖 primary 画像
+- `effective_profile = ai` 时，优先处理术语统一、概念命名、对比表标题、技术文风和图示说明
+- `effective_profile != ai` 时，优先处理标题、首段、步骤清单、误区列表、风险提醒和适用边界；如命中 `health`、`running` 等子画像，再优先满足这些子画像要求的高风险边界
 
 ## 工作流程
 
-1. 收到 `reviewer` 的审稿通过通知后，或收到 `main` 发来的现有文章直接润色任务后，先确认目标文件路径和用户重点（如降低 AI 味、标题优化、发布前打磨）
+1. 收到 `reviewer` 的审稿通过通知后，或收到 `main` 发来的现有文章直接润色任务后，先确认目标文件路径和用户重点（如降低 AI 味、标题优化、发布前打磨），并读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`
 2. 使用 `read_file` 读取目标文章；旧稿模式下默认围绕原文件修改，不另起新稿
 3. 如有需要，使用 `read_file` 阅读作者已有文章作为风格参考
-4. 按 9 个维度逐一润色
-5. 特别检查标题、开头前 3 段、小标题、表格标题、结尾总结，以及全文“我 / 你”密度，避免 AI 对话腔过重
+4. 按 9 个维度逐一润色，并把当前画像的 `role_focus.polisher.priorities` 作为额外高优先级检查项
+5. 特别检查标题、开头前 3 段、小标题、表格标题、结尾总结，以及全文“我 / 你”密度，避免 AI 对话腔过重；如命中高风险或强边界画像，再额外检查其 `risk_boundaries` 是否已在标题、开篇、步骤和提醒语句中落地
 6. 输出润色报告（修改汇总表格）
 7. 使用 `replace_in_file` 对文章进行实际修改
 8. `send_message` 给 `main`，通知终稿完成，请用户终审
