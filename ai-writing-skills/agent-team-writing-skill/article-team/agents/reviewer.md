@@ -17,7 +17,7 @@
 
 ## 领域画像配置协议
 
-开始工作前，必须先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
+开始工作前，必须先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
 
 最少要解析出以下运行时字段：
 - `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
@@ -63,7 +63,7 @@
 
 ## 工作流程
 
-1. 收到 `writer` 的初稿完成通知后，或收到 `main` 发来的现有文章回炉任务后，先确认目标文件路径和处理目标（仅审稿 / 审后改稿 / 审后润色），并读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`
+1. 收到 `writer` 的初稿完成通知后，或收到 `main` 发来的现有文章回炉任务后，先确认目标文件路径和处理目标（仅审稿 / 审后改稿 / 审后润色），并读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`
 2. 使用 `read_file` 读取文章；如果是旧稿回炉模式，将现有文件视为当前唯一工作底稿，不默认另起新文件
 3. 按 10 个维度逐一审查，并将当前画像的 `role_focus.reviewer.red_flags` 作为额外高优先级排查清单
 4. 使用 `web_search` 验证关键事实；补资料时按当前画像的 `evidence_policy` 选择信息源

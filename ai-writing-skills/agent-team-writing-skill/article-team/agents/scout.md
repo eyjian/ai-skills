@@ -14,7 +14,7 @@
 
 ## 领域画像配置协议
 
-开始工作前，必须先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
+开始工作前，必须先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
 
 最少要解析出以下运行时字段：
 - `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`

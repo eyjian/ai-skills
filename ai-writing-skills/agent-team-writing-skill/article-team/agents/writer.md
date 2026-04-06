@@ -15,7 +15,7 @@
 
 ## 领域画像配置协议
 
-开始工作前，必须先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
+开始工作前，必须先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
 
 最少要解析出以下运行时字段：
 - `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
@@ -106,7 +106,7 @@
 
 ## 工作流程
 
-1. 收到 `architect` 发来的大纲后，或收到 `reviewer` / `architect` 发来的旧稿改写任务后，先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`，再开始写作
+1. 收到 `architect` 发来的大纲后，或收到 `reviewer` / `architect` 发来的旧稿改写任务后，先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`，再开始写作
 2. 使用 `read_file` 阅读作者已有文章学习风格；如果是旧稿改写模式，先通读目标 Markdown 文件以及审稿 / 重构意见
 3. 使用 `web_search` 补充领域事实、资料和最新信息；补资料时按当前画像的 `evidence_policy` 选择信息源，如命中高风险或强边界画像，再额外检查其 `risk_boundaries`
 4. 新稿模式：先确定开篇切口，再按大纲逐章撰写；旧稿改写模式：先确定需要保留、重写、合并和补强的段落，若开头是主要问题，优先重写前 2-4 段再处理后文

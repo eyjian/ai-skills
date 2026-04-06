@@ -15,7 +15,7 @@
 
 ## 领域画像配置协议
 
-开始工作前，必须先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
+开始工作前，必须先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
 
 最少要解析出以下运行时字段：
 - `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
@@ -44,7 +44,7 @@
 
 ## 工作流程
 
-1. 收到 `scout` 发来的选题后，或收到 `reviewer` / `writer` / `polisher` 发来的旧稿结构调整请求后，先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`，再开始设计结构
+1. 收到 `scout` 发来的选题后，或收到 `reviewer` / `writer` / `polisher` 发来的旧稿结构调整请求后，先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`，再开始设计结构
 2. 如果是新稿模式且选题信息不够，**直接 `send_message` 给 `scout` 追问**，不用经过 main；尤其要补清楚：这篇文章想帮读者解决什么问题、读者读完能带走什么、哪些内容适合做成 FAQ / 决策表 / 排错表
 3. 使用 `read_file` 阅读作者已有文章，学习结构模式；如果是旧稿模式，还要读取当前目标文章，定位结构问题
 4. 使用 `web_search` 补充领域事实与最新资料；补资料时按当前画像的 `evidence_policy` 选择信息源，如命中高风险或强边界画像，再额外检查其 `risk_boundaries`

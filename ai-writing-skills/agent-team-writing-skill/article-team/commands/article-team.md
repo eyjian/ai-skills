@@ -10,7 +10,7 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 
 ## 共享领域画像解析（先解析画像，再判新 / 旧稿）
 
-在创建团队和判定任务模式之前，先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断从“硬编码分流”升级为“画像解析”。
+在创建团队和判定任务模式之前，先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断从“硬编码分流”升级为“画像解析”。
 
 最少要解析出以下运行时字段：
 - `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
@@ -222,7 +222,7 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 
 ### 第 0 步：先完成画像解析、模式判定和文件确认
 
-- 先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，完成 `topic_domain`、`effective_profile`、`resolved_mode`、`secondary_domains`、`default_reader`、`article_type_candidates`、`role_focus` 的解析
+- 先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，完成 `topic_domain`、`effective_profile`、`resolved_mode`、`secondary_domains`、`default_reader`、`article_type_candidates`、`role_focus` 的解析
 - 再记录面向用户展示的 `写作模式`：`AI 专用模式` 或 `通用模式`
 - 同步记录当前 `文章领域`：如 AI、健康、跑步、教育、职场、商业、生活方式或其他
 - 如果用户没有明确给出读者对象，优先使用 `default_reader` 作为工作假设，并在后续 prompt 中透传

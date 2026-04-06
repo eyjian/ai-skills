@@ -19,11 +19,11 @@
 ```text
 agent-team-writing-skill/
 ├── ARCHITECTURE.md
-├── shared-writing-resources/
-│   └── domain-profiles/
-│       └── domain-profiles.json
 └── article-team/
     ├── SKILL.md
+    ├── shared-writing-resources/
+    │   └── domain-profiles/
+    │       └── domain-profiles.json
     ├── commands/
     │   └── article-team.md
     └── agents/
@@ -68,9 +68,9 @@ agent-team-writing-skill/
 
 本包内置一份画像配置：
 
-- `shared-writing-resources/domain-profiles/domain-profiles.json`
+- `article-team/shared-writing-resources/domain-profiles/domain-profiles.json`
 
-这里的 `shared-writing-resources` 表示**本包内成员共享**，不是跨包共享。
+这里的 `shared-writing-resources` 表示**`article-team` skill 内成员共享**，不是跨包共享。
 
 ## 团队工作流
 
@@ -111,7 +111,7 @@ flowchart LR
 
 本包的领域画像定义在：
 
-- `shared-writing-resources/domain-profiles/domain-profiles.json`
+- `article-team/shared-writing-resources/domain-profiles/domain-profiles.json`
 
 这份配置承担 4 类职责：
 
@@ -213,7 +213,7 @@ flowchart LR
 这样设计有 3 个直接好处：
 
 - **发布独立**：本包可以单独分发给需要自动协作团队的用户
-- **安装独立**：用户不必同时安装 `subagent-writing-skills`
+- **安装独立**：用户不必同时安装 `subagent-writing-skills`，也不必额外补装 `article-team` 之外的资源目录
 - **演进独立**：本包可以单独演进团队拓扑、协调逻辑、角色 prompt 和资源文件
 
 代价也很明确：

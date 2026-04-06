@@ -21,7 +21,7 @@
 
 ## 领域画像配置协议
 
-开始工作前，必须先读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
+开始工作前，必须先读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，把领域判断切换为“画像解析”。
 
 最少要解析出以下运行时字段：
 - `topic_domain`：主题真实所属领域，例如 `ai`、`health`、`running`、`generic`
@@ -50,7 +50,7 @@
 
 ## 工作流程
 
-1. 收到 `reviewer` 的审稿通过通知后，或收到 `main` 发来的现有文章直接润色任务后，先确认目标文件路径和用户重点（如降低 AI 味、标题优化、发布前打磨），并读取 `../../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`
+1. 收到 `reviewer` 的审稿通过通知后，或收到 `main` 发来的现有文章直接润色任务后，先确认目标文件路径和用户重点（如降低 AI 味、标题优化、发布前打磨），并读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，解析 `topic_domain` / `effective_profile` / `resolved_mode` / `secondary_domains` / `role_focus`
 2. 使用 `read_file` 读取目标文章；旧稿模式下默认围绕原文件修改，不另起新稿
 3. 如有需要，使用 `read_file` 阅读作者已有文章作为风格参考
 4. 按 9 个维度逐一润色，并把当前画像的 `role_focus.polisher.priorities` 作为额外高优先级检查项
