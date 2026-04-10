@@ -18,6 +18,7 @@ usage() {
   real-article-team
   real-subagent-writing-skills
   real-ai-writing-skills
+  article-pipeline
   topic-scout
   outline-architect
   draft-writer
@@ -49,6 +50,7 @@ ai-writing-skills
 real-article-team
 real-subagent-writing-skills
 real-ai-writing-skills
+article-pipeline
 topic-scout
 outline-architect
 draft-writer
@@ -95,6 +97,9 @@ normalize_target() {
       ;;
     real-ai-writing-skills|real-writing-all)
       echo "real-ai-writing-skills"
+      ;;
+    article-pipeline|article_pipeline|pipeline)
+      echo "article-pipeline"
       ;;
     topic-scout|outline-architect|draft-writer|tech-reviewer|final-polisher|dicom-doctor|all)
       echo "$1"
@@ -246,6 +251,9 @@ install_target() {
       ;;
     real-subagent-writing-skills)
       install_real_subagent_bundle
+      ;;
+    article-pipeline)
+      copy_dir "ai-writing-skills/real-subagent-writing-skills/article-pipeline" "article-pipeline"
       ;;
     topic-scout|outline-architect|draft-writer|tech-reviewer|final-polisher)
       install_single_subagent "$1"
