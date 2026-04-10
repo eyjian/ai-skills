@@ -15,6 +15,9 @@ usage() {
   article-team
   subagent-writing-skills
   ai-writing-skills
+  real-article-team
+  real-subagent-writing-skills
+  real-ai-writing-skills
   topic-scout
   outline-architect
   draft-writer
@@ -43,6 +46,9 @@ print_targets() {
 article-team
 subagent-writing-skills
 ai-writing-skills
+real-article-team
+real-subagent-writing-skills
+real-ai-writing-skills
 topic-scout
 outline-architect
 draft-writer
@@ -75,11 +81,20 @@ normalize_target() {
     article-team|article_team|article-team-writing-skill)
       echo "article-team"
       ;;
+    real-article-team|real-article-team-writing-skill)
+      echo "real-article-team"
+      ;;
     subagent-writing-skills|subagent-writing-skill|subagents|writing-subagents)
       echo "subagent-writing-skills"
       ;;
+    real-subagent-writing-skills|real-subagent-writing-skill|real-subagents)
+      echo "real-subagent-writing-skills"
+      ;;
     ai-writing-skills|writing-all)
       echo "ai-writing-skills"
+      ;;
+    real-ai-writing-skills|real-writing-all)
+      echo "real-ai-writing-skills"
       ;;
     topic-scout|outline-architect|draft-writer|tech-reviewer|final-polisher|dicom-doctor|all)
       echo "$1"
@@ -95,8 +110,11 @@ expand_target() {
     ai-writing-skills)
       printf '%s\n' "subagent-writing-skills" "article-team"
       ;;
+    real-ai-writing-skills)
+      printf '%s\n' "real-subagent-writing-skills" "real-article-team"
+      ;;
     all)
-      printf '%s\n' "subagent-writing-skills" "article-team" "dicom-doctor"
+      printf '%s\n' "subagent-writing-skills" "article-team" "real-subagent-writing-skills" "real-article-team" "dicom-doctor"
       ;;
     *)
       printf '%s\n' "$1"
@@ -205,13 +223,29 @@ install_single_subagent() {
   copy_dir "$base/$name" "$name"
 }
 
+install_real_subagent_bundle() {
+  local base="ai-writing-skills/real-subagent-writing-skills"
+  copy_dir "$base/shared-writing-resources" "shared-writing-resources"
+  copy_dir "$base/topic-scout" "topic-scout"
+  copy_dir "$base/outline-architect" "outline-architect"
+  copy_dir "$base/draft-writer" "draft-writer"
+  copy_dir "$base/tech-reviewer" "tech-reviewer"
+  copy_dir "$base/final-polisher" "final-polisher"
+}
+
 install_target() {
   case "$1" in
     article-team)
       copy_dir "ai-writing-skills/agent-team-writing-skill/article-team" "article-team"
       ;;
+    real-article-team)
+      copy_dir "ai-writing-skills/real-agent-team-writing-skill/article-team" "article-team"
+      ;;
     subagent-writing-skills)
       install_subagent_bundle
+      ;;
+    real-subagent-writing-skills)
+      install_real_subagent_bundle
       ;;
     topic-scout|outline-architect|draft-writer|tech-reviewer|final-polisher)
       install_single_subagent "$1"

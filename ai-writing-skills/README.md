@@ -1,14 +1,25 @@
 # 文章编写 Skills 总览
 
-本目录包含两套 Agent 方案，用于辅助**领域画像驱动**的文章创作流程，而不再只是一套“AI 技术文章写作 prompt”。
+本目录包含**四套** Agent 方案，用于辅助**领域画像驱动**的文章创作流程。
 
 当前首批画像包括：`ai`、`generic`、`health`、`running`。
-两套 skill 包遵循同一套领域画像 schema，但为了**分别发布、分别安装、分别使用**，各自在自己的目录里内置配置和架构文档，运行时互不依赖。
+四套 skill 包遵循同一套领域画像 schema，各自在自己的目录里内置配置和架构文档，运行时互不依赖。
+
+## 四套方案对比
+
+| 方案 | 类型 | Agent 实例 | 通信机制 | 底层工具 |
+|------|------|-----------|---------|---------|
+| **subagent-writing-skills** | Skill 模拟 SubAgent | 单 Agent 角色扮演 | 无 | Skill 触发 |
+| **agent-team-writing-skill** | Skill 模拟 Agent Team | 单 Agent 角色扮演 | prompt 文字描述 | Skill 触发 |
+| **real-subagent-writing-skills** ⭐ | **真正的 SubAgent** | `task` 同步派发独立子 Agent | 阻塞返回结果 | `task`（同步模式） |
+| **real-agent-team-writing-skill** ⭐ | **真正的 Agent Team** | `task` 异步派发独立 Agent 实例 | `send_message` 直接通信 | `team_create` / `task` / `send_message` / `team_delete` |
 
 ## 架构文档
 
-- **Sub-Agent 包**：[ARCHITECTURE.md](/data/workspace/github/eyjian/ai-skills/ai-writing-skills/subagent-writing-skills/ARCHITECTURE.md)
-- **Agent Team 包**：[ARCHITECTURE.md](/data/workspace/github/eyjian/ai-skills/ai-writing-skills/agent-team-writing-skill/ARCHITECTURE.md)
+- **Sub-Agent 包（模拟版）**：[ARCHITECTURE.md](subagent-writing-skills/ARCHITECTURE.md)
+- **Agent Team 包（模拟版）**：[ARCHITECTURE.md](agent-team-writing-skill/ARCHITECTURE.md)
+- **Sub-Agent 包（真正多 Agent）**：[ARCHITECTURE.md](real-subagent-writing-skills/ARCHITECTURE.md)
+- **Agent Team 包（真正多 Agent）**：[ARCHITECTURE.md](real-agent-team-writing-skill/ARCHITECTURE.md)
 
 后续如果需要增加新领域，优先扩展各包内置的领域画像配置，而不是在每个角色里重复追加硬编码规则。
 
@@ -49,7 +60,7 @@
 
 设计原则：
 - `topic_domain` 表示主题真实所属领域
-- `effective_profile` 表示当前实际采用的画像；当用户明确要求“按通用文章写”时，可与 `topic_domain` 不同
+- `effective_profile` 表示当前实际采用的画像；当用户明确要求"按通用文章写"时，可与 `topic_domain` 不同
 - 子画像通过 `inherits_from` 继承父画像；角色消费时先合并父画像，再叠加子画像
 - 高风险或强边界领域（如 `health`、`running`）通过画像补充风险提示、停止条件和适用人群要求
 - `shared-writing-resources` 表示**包内共享**，不是跨包共享
@@ -59,7 +70,7 @@
 
 | 属性 | 说明 |
 |------|------|
-| **触发词** | "选题"、"写什么"、"最近有啥好写的"、"热点"、"选个主题"，以及“换个标题”“重估定位”“想几个副标题” |
+| **触发词** | "选题"、"写什么"、"最近有啥好写的"、"热点"、"选个主题"，以及"换个标题""重估定位""想几个副标题" |
 | **输入** | 模糊方向 / 具体方向 / 无方向 / 现有文章文件 |
 | **输出** | 3-5 个选题方案，或 2-3 个标题 / 副标题 / 定位优化方向 |
 | **工具** | `web_search`、`read_file` |
@@ -69,7 +80,7 @@
 
 | 属性 | 说明 |
 |------|------|
-| **触发词** | "大纲"、"文章结构"、"怎么组织"、"列个提纲"，以及“重构结构”“调整章节顺序”“给个改稿方案” |
+| **触发词** | "大纲"、"文章结构"、"怎么组织"、"列个提纲"，以及"重构结构""调整章节顺序""给个改稿方案" |
 | **输入** | 确认后的选题 + 补充意见，或现有文章 + 结构问题 |
 | **输出** | 结构化大纲，或现有文章的结构重构方案 |
 | **工具** | `web_search`、`read_file` |
@@ -80,7 +91,7 @@
 
 | 属性 | 说明 |
 |------|------|
-| **触发词** | "写初稿"、"开始写"、"按大纲写"、"撰写正文"，以及“按审稿意见改稿”“重写这几段”“按新结构改一版” |
+| **触发词** | "写初稿"、"开始写"、"按大纲写"、"撰写正文"，以及"按审稿意见改稿""重写这几段""按新结构改一版" |
 | **输入** | 审批通过的大纲，或现有文章 + 审稿意见 / 重构方案 |
 | **输出** | 完整 Markdown 初稿，或基于原文的局部 / 整体改写结果 |
 | **工具** | `read_file`、`web_search`、`write_to_file` / `replace_in_file` |
@@ -91,7 +102,7 @@
 
 | 属性 | 说明 |
 |------|------|
-| **触发词** | "审稿"、"review"、"检查文章"、"技术审查"、"帮我看看这篇"，以及“重审”“复审”“回炉检查” |
+| **触发词** | "审稿"、"review"、"检查文章"、"技术审查"、"帮我看看这篇"，以及"重审""复审""回炉检查" |
 | **输入** | 待审稿的 Markdown 文章（可为新稿、旧稿或改稿版） |
 | **输出** | 审稿报告（🔴 必须修改 / 🟡 建议改进 / 🟢 优点） |
 | **工具** | `read_file`、`web_search` |
@@ -103,7 +114,7 @@
 
 | 属性 | 说明 |
 |------|------|
-| **触发词** | "润色"、"打磨"、"终稿"、"最后检查"、"发布前检查"，以及“去 AI 味”“统一术语”“直接打磨现有文章” |
+| **触发词** | "润色"、"打磨"、"终稿"、"最后检查"、"发布前检查"，以及"去 AI 味""统一术语""直接打磨现有文章" |
 | **输入** | 审稿通过的文章，或现有文章 |
 | **输出** | 润色报告 + 实际修改后的终稿 |
 | **工具** | `read_file`、`replace_in_file` |
@@ -281,7 +292,7 @@
 
 ```text
 /draft-writer 按审稿意见改 docs/agent-orchestration.md，重点重写第 2、3 章，保留原观点
-/draft-writer 按新的结构方案改 docs/agent-orchestration.md，不要另起新文件，重点降低“我/你”密度
+/draft-writer 按新的结构方案改 docs/agent-orchestration.md，不要另起新文件，重点降低"我/你"密度
 ```
 
 #### 4. 只做审稿 / 复审
@@ -310,28 +321,46 @@
 ## 目录结构
 
 ```
-subagent-writing-skills/                    ← Sub-Agent 模式：5 个独立 Skill
-├── ARCHITECTURE.md                        ← 架构说明（Sub-Agent 包，独立发布）
+subagent-writing-skills/                    ← Sub-Agent 模式：5 个独立 Skill（模拟版）
+├── ARCHITECTURE.md                        ← 架构说明
 ├── topic-scout/SKILL.md                    ← 选题侦察员
 ├── outline-architect/SKILL.md              ← 大纲架构师
 ├── draft-writer/SKILL.md                   ← 初稿写手
 ├── tech-reviewer/SKILL.md                  ← 技术审稿人
 └── final-polisher/SKILL.md                 ← 终稿润色师
 
-agent-team-writing-skill/                   ← Agent Team 模式：1 个完整团队
-├── ARCHITECTURE.md                        ← 架构说明（Agent Team 包，独立发布）
+agent-team-writing-skill/                   ← Agent Team 模式：1 个完整团队（模拟版）
+├── ARCHITECTURE.md                        ← 架构说明
 └── article-team/
-    ├── SKILL.md                            ← 入口（触发描述）
+    ├── SKILL.md                            ← 入口
     ├── shared-writing-resources/
     │   └── domain-profiles/
-    │       └── domain-profiles.json       ← article-team 内共享画像配置
-    ├── commands/article-team.md            ← 编排命令（协调者 prompt）
+    │       └── domain-profiles.json       ← 画像配置
+    ├── commands/article-team.md            ← 协调者 prompt
     └── agents/
-        ├── scout.md                        ← 选题侦察员（团队版）
-        ├── architect.md                    ← 大纲架构师（团队版）
-        ├── writer.md                       ← 初稿写手（团队版）
-        ├── reviewer.md                     ← 技术审稿人（团队版）
-        └── polisher.md                     ← 终稿润色师（团队版）
+        ├── scout.md / architect.md / writer.md / reviewer.md / polisher.md
+
+real-subagent-writing-skills/               ← ⭐ 真正的 SubAgent 模式（task 同步派发独立子 Agent）
+├── ARCHITECTURE.md                        ← 架构说明
+├── shared-writing-resources/
+│   └── domain-profiles/
+│       └── domain-profiles.json           ← 画像配置
+├── topic-scout/SKILL.md                    ← 触发后 task(同步) → 独立子 Agent
+├── outline-architect/SKILL.md
+├── draft-writer/SKILL.md
+├── tech-reviewer/SKILL.md
+└── final-polisher/SKILL.md
+
+real-agent-team-writing-skill/              ← ⭐ 真正的 Agent Team 模式（team_create + task 异步 + send_message + team_delete）
+├── ARCHITECTURE.md                        ← 架构说明
+└── article-team/
+    ├── SKILL.md                            ← 入口
+    ├── shared-writing-resources/
+    │   └── domain-profiles/
+    │       └── domain-profiles.json       ← 画像配置
+    ├── commands/article-team.md            ← 协调者 prompt（真正调用 team_create / task / send_message / team_delete）
+    └── agents/
+        ├── scout.md / architect.md / writer.md / reviewer.md / polisher.md  ← 独立 Agent 实例 prompt
 ```
 
 ### 安装方式
@@ -339,11 +368,17 @@ agent-team-writing-skill/                   ← Agent Team 模式：1 个完整�
 将对应目录下的 Skill 文件复制到你项目的 `.codebuddy/skills/` 目录下即可使用：
 
 ```bash
-# 安装 Sub-Agent 模式（5 个独立 Skill）
+# 安装 Sub-Agent 模式（模拟版）
 cp -r subagent-writing-skills/* .codebuddy/skills/
 
-# 安装 Agent Team 模式
+# 安装 Agent Team 模式（模拟版）
 cp -r agent-team-writing-skill/article-team .codebuddy/skills/
+
+# ⭐ 安装真正的 SubAgent 模式
+cp -r real-subagent-writing-skills/* .codebuddy/skills/
+
+# ⭐ 安装真正的 Agent Team 模式
+cp -r real-agent-team-writing-skill/article-team .codebuddy/skills/
 ```
 
 ---
@@ -352,12 +387,14 @@ cp -r agent-team-writing-skill/article-team .codebuddy/skills/
 
 | 场景 | 推荐方案 |
 |------|---------|
-| 只想审稿 / 只想润色 / 只想要个选题 | 独立 Skill（按需触发单个角色） |
-| 完整写一篇文章，从选题到发布 | article-team（一条命令搞定） |
+| 只想审稿 / 只想润色 / 只想要个选题 | 独立 Skill（模拟版或真正 SubAgent 版） |
+| 完整写一篇文章，从选题到发布 | article-team（模拟版或真正 Agent Team 版） |
 | 已有旧稿，但想手动控制每一步如何回炉 | 独立 Skill |
 | 已有旧稿，想让团队自动重审、改稿、重润色 | article-team |
 | 想最大程度控制每一步 | 独立 Skill |
 | 想省事，让 Agent 自己协商解决 | article-team |
+| **想体验真正的多 Agent 协作** | ⭐ **real-agent-team-writing-skill** |
+| **想让每个角色在独立上下文中工作** | ⭐ **real-subagent-writing-skills** |
 
 ---
 
@@ -370,8 +407,8 @@ cp -r agent-team-writing-skill/article-team .codebuddy/skills/
 | 规则 | 说明 |
 |------|------|
 | 自然但克制 | 允许少量口语，但不写成聊天记录或口播脚本 |
-| 陈述式为主 | 少用“我带你看”“你可以”“别急着”这类面对面带读句式 |
-| 控制人称密度 | 正文尽量少用“我”“你”，必要时优先用“本文”“实践中”“建议”“可”“需”“应” |
+| 陈述式为主 | 少用"我带你看""你可以""别急着"这类面对面带读句式 |
+| 控制人称密度 | 正文尽量少用"我""你"，必要时优先用"本文""实践中""建议""可""需""应" |
 | 短句 | 每句 ≤ 30 字 |
 | 短段 | 每段 ≤ 5 行 |
 | 结构件选择 | 由当前 `effective_profile` 决定：`ai` 画像优先对比表；通用画像优先 FAQ / 清单 / 决策表 / 误区表 / 适合谁&不适合谁 |
@@ -381,5 +418,5 @@ cp -r agent-team-writing-skill/article-team .codebuddy/skills/
 | 有明确收获 | 读完后要能带走判断、方法、步骤、边界或避坑建议 |
 | 有可复用资产 | 每篇至少产出 1 个 FAQ / 决策表 / 排错表 / 误区清单 / 步骤清单 / 一页总结 |
 | 有传播亮点 | 至少有 1 处适合截图传播的表格、总结块或判断 |
-| 禁止学术腔 | 不用“本文旨在”、“综上所述”、“笔者认为” |
+| 禁止学术腔 | 不用"本文旨在"、"综上所述"、"笔者认为" |
 | 不保留固定 AI 结尾 | 不用 `本文由 AI 原生生成...` 这类自曝式结尾 |
