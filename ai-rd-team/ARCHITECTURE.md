@@ -58,21 +58,36 @@ team_delete()
 
 ## 通信拓扑
 
-```text
-        analyst ◄────► architect
-          ▲               ▲
-          │               │
-          │      ┌────────┼────────┐
-          │      │        │        │
-          ▼      ▼        ▼        ▼
-        tester  backend ◄──► frontend
-          ▲      ▲              ▲
-          │      │              │
-          ▼      ▼              ▼
-        code-reviewer ◄────► main(协调者)
+> 每个角色都是通过 `task` 工具派发的独立 Agent 实例，通过 `send_message` 直接对话。
 
-  ◄──► 表示通过 send_message 直接对话
-  每个角色都是通过 task 工具派发的独立 Agent 实例
+```mermaid
+graph TD
+    Main["🎯 main（协调者）"] <--> Analyst["🔍 analyst"]
+    Main <--> Architect["🏗️ architect"]
+    Main <--> Backend["⚙️ backend-dev"]
+    Main <--> Frontend["🎨 frontend-dev"]
+    Main <--> Reviewer["🛡️ code-reviewer"]
+    Main <--> Tester["🧪 tester"]
+
+    Analyst <--> Architect
+    Analyst <--> Tester
+    Architect <--> Backend
+    Architect <--> Frontend
+    Architect <--> Reviewer
+    Architect <--> Tester
+    Backend <--> Frontend
+    Backend <--> Reviewer
+    Backend <--> Tester
+    Frontend <--> Reviewer
+    Frontend <--> Tester
+
+    style Main fill:#fff3e0,stroke:#ff9800
+    style Analyst fill:#f3e5f5,stroke:#9c27b0
+    style Architect fill:#e8f5e9,stroke:#4caf50
+    style Backend fill:#e3f2fd,stroke:#2196f3
+    style Frontend fill:#fce4ec,stroke:#e91e63
+    style Reviewer fill:#fff8e1,stroke:#ffc107
+    style Tester fill:#f1f8e9,stroke:#8bc34a
 ```
 
 ## 4 种任务模式
