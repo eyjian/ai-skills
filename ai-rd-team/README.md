@@ -78,14 +78,47 @@ graph TD
 
 ## 安装
 
-### 方式一：手动复制（推荐）
+### 方式一：一键安装（推荐）
+
+```bash
+# 远程一键安装（无需克隆仓库）
+curl -fsSL https://raw.githubusercontent.com/eyjian/ai-skills/main/install-skill.sh | bash -s -- rd-team
+```
+
+如果已克隆仓库，可在仓库根目录执行：
+
+```bash
+bash install-skill.sh rd-team
+```
+
+也可以和其他 Skill 一起安装：
+
+```bash
+# 安装 rd-team 和 ai-writing-skills
+bash install-skill.sh rd-team ai-writing-skills
+
+# 安装全部 Skill
+bash install-skill.sh all
+```
+
+可选参数：
+
+```bash
+# 指定安装目标目录
+bash install-skill.sh rd-team --target /your/project/.codebuddy/skills
+
+# 指定分支或标签
+bash install-skill.sh rd-team --ref v1.0
+```
+
+### 方式二：手动复制
 
 ```bash
 # 在 ai-skills 仓库根目录下执行
 cp -r ai-rd-team/rd-team .codebuddy/skills/
 ```
 
-安装后的目录结构：
+### 安装后的目录结构
 
 ```
 .codebuddy/skills/
@@ -103,16 +136,6 @@ cp -r ai-rd-team/rd-team .codebuddy/skills/
         ├── frontend-dev.md
         ├── code-reviewer.md
         └── tester.md
-```
-
-### 方式二：在其他项目中安装
-
-```bash
-# 克隆仓库
-git clone https://github.com/eyjian/ai-skills.git
-
-# 复制到目标项目
-cp -r ai-skills/ai-rd-team/rd-team /your/project/.codebuddy/skills/
 ```
 
 ### 验证安装

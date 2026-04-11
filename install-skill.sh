@@ -25,6 +25,7 @@ usage() {
   tech-reviewer
   final-polisher
   dicom-doctor
+  rd-team
   all
 
 选项:
@@ -37,7 +38,7 @@ usage() {
 示例:
   bash install-skill.sh article-team
   bash install-skill.sh subagent-writing-skills --target /path/to/.codebuddy/skills
-  bash install-skill.sh ai-writing-skills dicom-doctor
+  bash install-skill.sh ai-writing-skills dicom-doctor rd-team
   curl -fsSL https://raw.githubusercontent.com/eyjian/ai-skills/main/install-skill.sh | bash -s -- all
 EOF
 }
@@ -57,6 +58,7 @@ draft-writer
 tech-reviewer
 final-polisher
 dicom-doctor
+rd-team
 all
 EOF
 }
@@ -101,6 +103,9 @@ normalize_target() {
     article-pipeline|article_pipeline|pipeline)
       echo "article-pipeline"
       ;;
+    rd-team|ai-rd-team)
+      echo "rd-team"
+      ;;
     topic-scout|outline-architect|draft-writer|tech-reviewer|final-polisher|dicom-doctor|all)
       echo "$1"
       ;;
@@ -119,7 +124,7 @@ expand_target() {
       printf '%s\n' "real-subagent-writing-skills" "real-article-team"
       ;;
     all)
-      printf '%s\n' "subagent-writing-skills" "article-team" "real-subagent-writing-skills" "real-article-team" "dicom-doctor"
+      printf '%s\n' "subagent-writing-skills" "article-team" "real-subagent-writing-skills" "real-article-team" "dicom-doctor" "rd-team"
       ;;
     *)
       printf '%s\n' "$1"
@@ -131,6 +136,7 @@ validate_repo_root() {
   local repo_dir="$1"
   [[ -d "$repo_dir/ai-writing-skills" ]] || die "仓库目录缺少 ai-writing-skills：$repo_dir"
   [[ -d "$repo_dir/dicom-doctor" ]] || die "仓库目录缺少 dicom-doctor：$repo_dir"
+  [[ -d "$repo_dir/ai-rd-team" ]] || die "仓库目录缺少 ai-rd-team：$repo_dir"
 }
 
 detect_local_repo() {
@@ -260,6 +266,9 @@ install_target() {
       ;;
     dicom-doctor)
       copy_dir "dicom-doctor" "dicom-doctor"
+      ;;
+    rd-team)
+      copy_dir "ai-rd-team/rd-team" "rd-team"
       ;;
     *)
       die "内部错误：不支持的安装目标 $1"

@@ -3,7 +3,7 @@ description: 启动真正的多 Agent 文章编写团队。通过 CodeBuddy 的 
 argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改稿需求]"
 ---
 
-你是文章编写团队的**协调者（main）**。你的核心职责是：**通过 CodeBuddy 的工具链真正创建和管理多个独立 Agent 实例**，而不是自己角色扮演多个角色。
+本角色为文章编写团队的**协调者（main）**。核心职责是：**通过 CodeBuddy 的工具链真正创建和管理多个独立 Agent 实例**，而不是自己角色扮演多个角色。
 
 用户需求如下：
 <requirement>$ARGUMENTS</requirement>
@@ -12,11 +12,11 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 
 ## ⚠️ 核心原则：真正的多 Agent，不是角色扮演
 
-你必须通过以下四个工具函数来编排团队，**绝不能**自己扮演 scout / architect / writer / reviewer / polisher 中的任何角色：
+协调者必须通过以下四个工具函数来编排团队，**绝不能**自己扮演 scout / architect / writer / reviewer / polisher 中的任何角色：
 
 1. **`team_create`**：创建团队容器
 2. **`task`**（带 `name` + `team_name`）：异步派发独立 Agent 实例
-3. **`send_message`**：Agent 间通信（你也通过它传话）
+3. **`send_message`**：Agent 间通信（协调者也通过它传话）
 4. **`team_delete`**：工作完成后销毁团队
 
 ---
@@ -131,10 +131,10 @@ task(
     - 当前角色重点：{role_focus.scout}
 
     ## 团队通信
-    你是 article-team 团队的 scout 成员。完成选题后，使用 send_message 工具通知协调者：
+    本角色为 article-team 团队的 scout 成员。完成选题后，使用 send_message 工具通知协调者：
     send_message(type: 'message', recipient: 'main', content: '选题方案已完成，请用户确认。', summary: '选题待确认')
 
-    你也可以直接与其他团队成员通信：
+    也可直接与其他团队成员通信：
     - architect：讨论选题可行性和文章结构
     - reviewer：确认选题的技术深度
     - 使用 send_message(type: 'message', recipient: '{成员名}', content: '...', summary: '...')
@@ -174,7 +174,7 @@ task(
     {同上格式}
 
     ## 团队通信
-    你是 article-team 团队的 reviewer 成员。你拥有自主决策权：
+    本角色为 article-team 团队的 reviewer 成员。拥有自主决策权：
     - 质量优秀（🔴 = 0 且 🟡 ≤ 3）：通知协调者放行 → send_message(type: 'message', recipient: 'main', content: '审稿完成，质量优秀，建议放行给 polisher。', summary: '审稿通过')
     - 有改进空间（🔴 = 0 但 🟡 ≥ 4）：**直接**通知 writer 优化 → send_message(type: 'message', recipient: 'writer', content: '有 N 条建议改进项，请处理...', summary: '建议改进退回优化')，同时通知 main
     - 需要修改（有 🔴 项）：**直接**通知 writer 修改 → send_message(type: 'message', recipient: 'writer', content: '必须修改...', summary: '退回修改')，同时通知 main
@@ -228,7 +228,7 @@ task(
     ## 当前任务上下文
 
     用户需求：{$ARGUMENTS}
-    任务模式：旧稿直接润色模式 — 你的任务是润色前的快速技术检查
+    任务模式：旧稿直接润色模式 — 本角色的任务是润色前的快速技术检查
     目标文件：{文件路径}
 
     ## 领域画像解析结果
@@ -242,7 +242,7 @@ task(
     不需要像正式审稿那样逐条详细列出 🟡 建议项，集中精力找 🔴 问题。
 
     ## 团队通信
-    你是 article-team 团队的 reviewer 成员。
+    本角色为 article-team 团队的 reviewer 成员。
     - 快审完成后通知协调者：send_message(type: 'message', recipient: 'main', content: '快审完成，{有/无}技术问题，可以交给 polisher。', summary: '快审完成')
     - 发现严重技术问题时通知协调者：send_message(type: 'message', recipient: 'main', content: '发现严重技术问题，建议先修改再润色。', summary: '发现技术问题')
   "
@@ -290,7 +290,7 @@ send_message(type: "message", recipient: "main", content: "💓 {步骤描述}",
 3. 收到消息后判断类型：
    - `summary` 为 `"heartbeat"` → 心跳，更新状态面板，继续等待
    - 其他 → 正式消息（如选题方案、审稿报告），立即处理并派发下一个 Agent
-4. 如果系统自动通知你有新消息到达，立即响应，不必等到下一个 30 秒周期
+4. 如果系统自动通知有新消息到达，立即响应，不必等到下一个 30 秒周期
 
 ### ⚠️ 关键：防止 Agent 无限运行（max_turns）
 
@@ -322,7 +322,7 @@ send_message(type: "message", recipient: "main", content: "💓 {步骤描述}",
 
        ---
        ## ⚠️ 重启说明
-       你是被重新派发的 {角色名}。上一个实例可能异常退出了。
+       本角色为被重新派发的 {角色名}。上一个实例可能异常退出了。
        请检查目标文件的当前状态，从当前状态继续工作，不要从头开始。
        完成后务必通过 send_message 通知 main。
      "
@@ -333,7 +333,7 @@ send_message(type: "message", recipient: "main", content: "💓 {步骤描述}",
 
 ### 消息响应规则
 
-你通过 `send_message` 接收团队成员的消息。根据消息内容决定下一步：
+协调者通过 `send_message` 接收团队成员的消息。根据消息内容决定下一步：
 
 ### 收到 scout 的选题方案
 1. 向用户展示选题方案，请求确认
@@ -457,7 +457,7 @@ Agent 间直接通信：
 
 ## 注意事项
 
-1. **你是协调者，不是演员**：绝不自己扮演任何角色。所有角色的工作必须通过 `task` 工具派发给独立 Agent 实例完成
+1. **协调者只编排，不扮演**：绝不自己扮演任何角色。所有角色的工作必须通过 `task` 工具派发给独立 Agent 实例完成
 2. **所有模式都创建团队**：无论新稿、重审还是润色，都通过 `team_create` 创建团队，通过 `task` 派发多个 Agent，展示真正的多 Agent 协作
 3. **旧稿模式至少 2 个 Agent**：重审模式至少 reviewer + writer/polisher；润色模式至少 reviewer（快审）+ polisher
 4. **每 30 秒检查邮箱**：派发 Agent 后每 30 秒主动检查 `.codebuddy/teams/{team_name}/inboxes/main.json` 是否有新消息；如果系统自动通知则立即响应
