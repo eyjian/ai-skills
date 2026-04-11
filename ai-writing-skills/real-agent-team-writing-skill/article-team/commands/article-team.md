@@ -1,5 +1,5 @@
 ---
-description: 启动真正的多 Agent 文章编写团队。通过 CodeBuddy 的 team_create / task（异步团队模式）/ send_message / team_delete 工具链，创建 5 个独立 Agent 实例以网状拓扑协作。支持 AI、健康、跑步及其他可配置领域的新稿创作、旧稿重审 / 回炉、旧稿直接润色。
+description: 启动真正的多 Agent 文章编写团队。通过 CodeBuddy 的 team_create / task（异步团队模式）/ send_message / team_delete 工具链，创建 5 个独立 Agent 实例以网状拓扑协作。支持 AI、健康、跑步及其他可配置领域的新稿创作、旧稿重审、旧稿优化、旧稿修改 / 回炉、旧稿直接润色。
 argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改稿需求]"
 ---
 
