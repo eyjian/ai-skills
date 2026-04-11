@@ -127,11 +127,13 @@ CodeBuddy 的 `task` 工具要求 `subagent_name` 匹配已注册的 Agent 类�
 
 | 模式 | 参与 Agent | 典型输入 | 多 Agent 协作流程 |
 |------|-----------|---------|------------------|
-| 新稿创作 | scout → architect → writer → reviewer → polisher | 只有方向、主题或选题想法 | 全流程 5 Agent |
-| 旧稿重审 / 回炉 | reviewer → writer → polisher | `.md` 文件路径 + 重审/回炉/检查 | reviewer 审查 → writer 改稿 → polisher 润色 |
-| 旧稿直接润色 | reviewer（快审）→ polisher | `.md` 文件路径 + 只润色/去 AI 味 | reviewer 先快审 → polisher 润色 |
+| 新稿创作 | scout → architect → writer → reviewer → polisher | 只有方向、主题或选题想法，不涉及已有文件 | 全流程 5 Agent |
+| 旧稿重审 / 回炉 | reviewer → writer → polisher | 文件路径 + 修改/改/调整/优化/重写/重构/检查/审查/重审/回炉/改稿/改写/编辑/更新/完善/补充/删减/精简/扩充 | reviewer 审查 → writer 改稿 → polisher 润色 |
+| 旧稿直接润色 | reviewer（快审）→ polisher | 文件路径 + 只润色/去 AI 味/发布前打磨 | reviewer 先快审 → polisher 润色 |
 
-**核心原则**：即使只是检查或润色已有文章，也通过 `team_create` 创建团队、通过 `task` 派发多个独立 Agent 实例协作，确保展示真正的多 Agent 效果。
+**兜底规则**：提到已有文件但未明确说"只润色"时，一律按旧稿重审 / 回炉模式处理。
+
+**核心原则**：即使只是检查或润色已有文章，也通过 `team_create` 创建团队、通过 `task` 派发多个独立 Agent 实例协作，确保展示真正的多 Agent 效果。协调者绝不直接修改用户文章。
 
 ## 领域画像
 

@@ -21,6 +21,20 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 
 ---
 
+## 🚨 前置门禁（在任何操作之前执行）
+
+**无论用户输入什么，协调者都必须先执行以下检查：**
+
+1. 用户输入中是否包含**文件路径**（`.md`、`docs/`、相对路径、绝对路径）或**指向已有文章**的描述（"那篇文章""上次写的""已有的""现有的"）？
+2. 用户输入中是否包含**任何修改类动词**："修改""改""调整""优化""重写""重构""润色""打磨""去 AI 味""检查""审查""重审""回炉""改稿""改写""编辑""更新""完善""补充""删减""精简""扩充"？
+
+**如果 1 或 2 任一为是** → 这是旧稿任务，**必须走旧稿模式（B 或 C）**，必须 `team_create` + `task` 派发 Agent。
+**如果 1 和 2 都为否** → 这是新稿任务，走新稿创作模式（A）。
+
+⛔ **绝对禁止**：协调者直接使用 `read_file` + `replace_in_file` / `write_to_file` 修改用户的文章。所有对文章内容的修改都必须通过派发 writer 或 polisher Agent 完成。
+
+---
+
 ## 第 0 步：领域画像解析
 
 在创建团队之前，先用 `read_file` 读取 `../shared-writing-resources/domain-profiles/domain-profiles.json`，解析以下运行时字段：
@@ -47,9 +61,11 @@ argument-hint: "[选题方向、具体主题，或现有文章文件路径 / 改
 
 | 模式 | 识别信号 | 参与 Agent | 说明 |
 |------|---------|-----------|------|
-| 新稿创作 | 主题方向、选题想法、"写一篇" | scout → architect → writer → reviewer → polisher | 全流程 |
-| 旧稿重审 / 回炉 | `.md` 文件 + 重审/回炉/检查/重构结构 | reviewer → writer → polisher | reviewer 审查 → writer 改稿 → polisher 润色 |
-| 旧稿直接润色 | `.md` 文件 + 只润色/去 AI 味/发布前打磨 | reviewer（快审） → polisher | reviewer 先做快速检查 → polisher 润色 |
+| 新稿创作 | 主题方向、选题想法、"写一篇"，且不涉及已有文件 | scout → architect → writer → reviewer → polisher | 全流程 |
+| 旧稿重审 / 回炉 | 文件路径 + 修改/改/调整/优化/重写/重构/检查/审查/重审/回炉/改稿/改写/编辑/更新/完善/补充/删减/精简/扩充 | reviewer → writer → polisher | reviewer 审查 → writer 改稿 → polisher 润色 |
+| 旧稿直接润色 | 文件路径 + 只润色/去 AI 味/发布前打磨/降 AI 味/打磨 | reviewer（快审） → polisher | reviewer 先做快速检查 → polisher 润色 |
+
+**兜底规则**：如果用户提到了已有文件但未明确说是"只润色"，一律按**旧稿重审 / 回炉模式**处理。宁可多审不可漏审。
 
 **核心原则：所有模式都创建团队、都派发多个 Agent 实例**，以确保每个环节都有独立 Agent 参与协作。
 
@@ -468,3 +484,5 @@ Agent 间直接通信：
 9. **`subagent_name` 统一用 `"coder"`**：这是内置通用类型，无需注册。角色差异化通过 prompt 注入实现
 10. **Agent prompt 来源**：每次派发 Agent 前，用 `read_file` 读取对应的 `agents/{name}.md` 文件作为 prompt 基础
 11. **旧稿模式默认原地修改**：除非用户明确要求另存
+12. **⛔ 协调者绝不直接改文章**：协调者不得使用 `replace_in_file` 或 `write_to_file` 修改用户的文章内容。所有修改必须通过派发 writer 或 polisher Agent 完成。如果发现自己正在直接编辑文章，立即停止并改为派发 Agent
+13. **旧稿识别要宽不要窄**：用户提到了已有文件 + 任何修改类动词，一律走旧稿模式。不要因为用户没说"重审""回炉"就当成不需要 team 的简单任务

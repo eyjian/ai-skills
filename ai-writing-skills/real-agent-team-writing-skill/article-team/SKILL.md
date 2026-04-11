@@ -29,6 +29,10 @@ description: 真正的多 Agent 文章编写团队。当用户要写文章（AI�
 /article-team 重审 docs/agent-orchestration.md
 /article-team 请润色 article.md，重点降低 AI 味
 /article-team 重构 docs/agent-orchestration.md 的章节顺序
+/article-team 修改 docs/my-article.md，开篇太弱需要重写
+/article-team 优化 article.md 的结构和表达
+/article-team 帮我改一下 docs/ai-agent.md，去掉对话腔
+/article-team 调整 docs/running-plan.md，补充风险提示
 ```
 
 ## 共享领域画像
@@ -48,9 +52,11 @@ description: 真正的多 Agent 文章编写团队。当用户要写文章（AI�
 
 | 场景 | 典型输入 | 参与 Agent | 多 Agent 协作流程 |
 |------|---------|-----------|------------------|
-| 新稿创作 | 主题方向、选题想法 | scout → architect → writer → reviewer → polisher | 全流程 5 Agent |
-| 旧稿重审 / 回炉 | `.md` 文件路径 + 重审/回炉/检查 | reviewer → writer → polisher | reviewer 审查 → writer 改稿 → polisher 润色 |
-| 旧稿直接润色 | `.md` 文件路径 + 只润色/去 AI 味 | reviewer（快审）→ polisher | reviewer 先快审 → polisher 润色 |
+| 新稿创作 | 主题方向、选题想法，且不涉及已有文件 | scout → architect → writer → reviewer → polisher | 全流程 5 Agent |
+| 旧稿重审 / 回炉 | 文件路径 + 修改/改/调整/优化/重写/重构/检查/审查/重审/回炉/改稿/改写/编辑/更新/完善/补充/删减/精简/扩充 | reviewer → writer → polisher | reviewer 审查 → writer 改稿 → polisher 润色 |
+| 旧稿直接润色 | 文件路径 + 只润色/去 AI 味/发布前打磨 | reviewer（快审）→ polisher | reviewer 先快审 → polisher 润色 |
+
+**兜底规则**：提到已有文件但未明确说"只润色"时，一律按旧稿重审 / 回炉模式处理。
 
 **核心原则**：即使只是检查或润色一篇已有文章，也会通过 `team_create` 创建团队、通过 `task` 派发多个独立 Agent 实例协作完成。每个 Agent 通过 `send_message` 直接通信。
 
