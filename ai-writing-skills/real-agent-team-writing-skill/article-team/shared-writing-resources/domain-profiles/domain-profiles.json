@@ -3,7 +3,8 @@
   "principles": [
     "新增或细化领域时，优先修改本配置文件，而不是在各个角色 prompt 中重复追加硬编码规则。",
     "子领域通过 inherits_from 继承基础画像；角色消费画像时，先合并父画像，再叠加子画像。",
-    "角色必须同时区分 topic_domain 和 effective_profile：前者表示主题真实所属领域，后者表示当前执行应采用的画像。"
+    "角色必须同时区分 topic_domain 和 effective_profile：前者表示主题真实所属领域，后者表示当前执行应采用的画像。",
+    "全局铁律：正文中对读者说的「你」必须为 0。所有角色在产出或修改文章时，必须用 search_content 工具搜索验证，不能依赖人工记忆。标题中的「你」、引用对话中的「你」、场景叙事中第三方的「你」可豁免。此规则适用于所有领域画像，不可覆盖。"
   ],
   "merge_policy": {
     "scalar": "子画像覆盖父画像",
@@ -18,7 +19,8 @@
       "secondary_domains",
       "default_reader",
       "article_type_candidates",
-      "role_focus"
+      "role_focus",
+      "ni_wei_clean_status"
     ],
     "field_explanations": {
       "topic_domain": "主题真实所属领域，例如 ai、health、running、generic。",
@@ -27,7 +29,8 @@
       "secondary_domains": "多领域命中时的次要领域，用于补充边界和案例，但不覆盖 primary 画像。",
       "default_reader": "如果用户没有明确读者对象时的工作假设。",
       "article_type_candidates": "当前画像更适合的文章类型候选。",
-      "role_focus": "当前角色在该画像下应优先关注的事项。"
+      "role_focus": "当前角色在该画像下应优先关注的事项。",
+      "ni_wei_clean_status": "对读者说的「你」清零状态。旧稿模式下初始值为 unchecked，经过 search_content 搜索验证后更新为 clean（0 处）或 dirty（N 处待清理）。只有 clean 状态才允许提交终稿。"
     }
   },
   "router": {
