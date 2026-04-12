@@ -1,25 +1,52 @@
 # 文章编写 Skills 总览
 
-本目录包含**四套** Agent 方案，用于辅助**领域画像驱动**的文章创作流程。
+本目录包含**五套** Agent 方案，用于辅助**领域画像驱动**的文章创作流程。
 
 当前首批画像包括：`ai`、`generic`、`health`、`running`。
-四套 skill 包遵循同一套领域画像 schema，各自在自己的目录里内置配置和架构文档，运行时互不依赖。
+五套 skill 包遵循同一套领域画像 schema，各自在自己的目录里内置配置和架构文档，运行时互不依赖。
 
-## 四套方案对比
+## 五套方案对比
 
 | 方案 | 类型 | Agent 实例 | 通信机制 | 底层工具 |
 |------|------|-----------|---------|---------|
 | **subagent-writing-skills** | Skill 模拟 SubAgent | 单 Agent 角色扮演 | 无 | Skill 触发 |
 | **agent-team-writing-skill** | Skill 模拟 Agent Team | 单 Agent 角色扮演 | prompt 文字描述 | Skill 触发 |
 | **real-subagent-writing-skills** ⭐ | **真正的 SubAgent** | `task` 同步派发独立子 Agent | 阻塞返回结果 | `task`（同步模式） |
-| **real-agent-team-writing-skill** ⭐ | **真正的 Agent Team** | `task` 异步派发独立 Agent 实例 | `send_message` 直接通信 | `team_create` / `task` / `send_message` / `team_delete` |
+| **real-agent-team-writing-skill** ⭐ | **真正的 Agent Team（方式 A）** | `task` 异步派发独立 Agent 实例（借用内置 coder） | `send_message` 直接通信 | `team_create` / `task` / `send_message` / `team_delete` |
+| **custom-agent-article-team** ⭐⭐ | **真正的自定义 Agent Team（方式 B）** | `task` 异步派发**自定义注册** Subagent 实例 | `send_message` 直接通信 | `team_create` / `task`(自定义 subagent) / `send_message` / `team_delete` |
+
+## 方式 A 与方式 B 的核心区别
+
+| 维度 | 方式 A（real-agent-team-writing-skill） | 方式 B（custom-agent-article-team） |
+|------|----------------------------------------|-------------------------------------|
+| **subagent_name** | 统一用内置 `"coder"` | 各角色自定义注册名（`"article-scout"` 等） |
+| **工具集** | 所有角色共享 coder 完整工具集 | 每个角色精确声明所需 tools |
+| **System Prompt** | 协调者 `read_file` 读取注入 | 平台自动加载 |
+| **安装步骤** | 一步：复制 Skill 包 | 两步：先注册 agents，再安装 Skill |
+| **适合场景** | 快速上手，安装简单 | 想要精确工具集控制和平台级角色注册 |
+
+## 关键备忘：为什么方式 A 的 agents/ 可以放在 Skill 内部，方式 B 不行？
+
+两套方案的 `agents/` 目录虽然名字相同，**本质完全不同**：
+
+| 维度 | 方式 A（`real-agent-team-writing-skill`） | 方式 B（`custom-agent-article-team`） |
+|------|------------------------------------------|--------------------------------------|
+| **文件格式** | 纯 Markdown，无 frontmatter | 带 frontmatter（name / tools / agentMode） |
+| **角色** | 给 `read_file` 读的 **prompt 文本素材** | 给平台注册的 **Subagent 声明文件** |
+| **被谁消费** | 协调者运行时 `read_file("agents/xxx.md")` 读取内容，注入到 `task(subagent_name: "coder", prompt: ...)` | IDE 启动时扫描 `.codebuddy/agents/` 目录自动注册 |
+| **放在 skill 里** | ✅ 可以——只要路径能被 `read_file` 读到即可 | ❌ 不行——IDE 只会从 `.codebuddy/agents/` 扫描注册，不会扫描 `.codebuddy/skills/` 目录 |
+
+**一句话总结**：方式 A 的 agents 是**被代码读取的 prompt 素材**，放 skill 内部没问题；方式 B 的 agents 是**需要被平台注册的声明文件**，必须放到 `.codebuddy/agents/` 这个专用目录下。
+
+---
 
 ## 架构文档
 
 - **Sub-Agent 包（模拟版）**：[ARCHITECTURE.md](subagent-writing-skills/ARCHITECTURE.md)
 - **Agent Team 包（模拟版）**：[ARCHITECTURE.md](agent-team-writing-skill/ARCHITECTURE.md)
 - **Sub-Agent 包（真正多 Agent）**：[ARCHITECTURE.md](real-subagent-writing-skills/ARCHITECTURE.md)
-- **Agent Team 包（真正多 Agent）**：[ARCHITECTURE.md](real-agent-team-writing-skill/ARCHITECTURE.md)
+- **Agent Team 包（真正多 Agent，方式 A）**：[ARCHITECTURE.md](real-agent-team-writing-skill/ARCHITECTURE.md)
+- **自定义 Agent Team（方式 B）**：[ARCHITECTURE.md](custom-agent-article-team/ARCHITECTURE.md)
 
 后续如果需要增加新领域，优先扩展各包内置的领域画像配置，而不是在每个角色里重复追加硬编码规则。
 
@@ -351,16 +378,31 @@ real-subagent-writing-skills/               ← ⭐ 真正的 SubAgent 模式（
 ├── tech-reviewer/SKILL.md
 └── final-polisher/SKILL.md
 
-real-agent-team-writing-skill/              ← ⭐ 真正的 Agent Team 模式（team_create + task 异步 + send_message + team_delete）
+real-agent-team-writing-skill/              ← ⭐ 真正的 Agent Team 模式（方式 A：借用内置 coder）
 ├── ARCHITECTURE.md                        ← 架构说明
 └── article-team/
     ├── SKILL.md                            ← 入口
     ├── shared-writing-resources/
     │   └── domain-profiles/
     │       └── domain-profiles.json       ← 画像配置
-    ├── commands/article-team.md            ← 协调者 prompt（真正调用 team_create / task / send_message / team_delete）
+    ├── commands/article-team.md            ← 协调者 prompt（subagent_name 统一用 "coder"）
     └── agents/
         ├── scout.md / architect.md / writer.md / reviewer.md / polisher.md  ← 独立 Agent 实例 prompt
+
+custom-agent-article-team/                  ← ⭐⭐ 自定义 Agent Team 模式（方式 B：自定义注册 Subagent）
+├── ARCHITECTURE.md                        ← 架构说明（含方式 A vs B 对比）
+├── agents/                                ← Subagent 注册文件（安装时复制到 .codebuddy/agents/）
+│   ├── article-scout.md                   ← 选题侦察员（自定义 Subagent，frontmatter 声明 tools）
+│   ├── article-architect.md               ← 大纲架构师
+│   ├── article-writer.md                  ← 初稿写手
+│   ├── article-reviewer.md                ← 技术审稿人
+│   └── article-polisher.md                ← 终稿润色师
+└── article-team/                          ← Skill 包（安装时复制到 .codebuddy/skills/）
+    ├── SKILL.md                            ← 入口
+    ├── shared-writing-resources/
+    │   └── domain-profiles/
+    │       └── domain-profiles.json       ← 画像配置
+    └── commands/article-team.md            ← 协调者 prompt（subagent_name 用各角色注册名）
 ```
 
 ### 安装方式
@@ -377,8 +419,16 @@ cp -r agent-team-writing-skill/article-team .codebuddy/skills/
 # ⭐ 安装真正的 SubAgent 模式
 cp -r real-subagent-writing-skills/* .codebuddy/skills/
 
-# ⭐ 安装真正的 Agent Team 模式
+# ⭐ 安装真正的 Agent Team 模式（方式 A：借用内置 coder）
 cp -r real-agent-team-writing-skill/article-team .codebuddy/skills/
+
+# ⭐⭐ 安装自定义 Agent Team 模式（方式 B：自定义注册 Subagent）
+# 注意：方式 B 需要两步安装
+# 步骤 1：注册自定义 Subagent（必须先执行）
+mkdir -p .codebuddy/agents
+cp custom-agent-article-team/agents/*.md .codebuddy/agents/
+# 步骤 2：安装 Skill
+cp -r custom-agent-article-team/article-team .codebuddy/skills/
 ```
 
 ---
@@ -393,8 +443,9 @@ cp -r real-agent-team-writing-skill/article-team .codebuddy/skills/
 | 已有旧稿，想让团队自动重审、改稿、重润色 | article-team |
 | 想最大程度控制每一步 | 独立 Skill |
 | 想省事，让 Agent 自己协商解决 | article-team |
-| **想体验真正的多 Agent 协作** | ⭐ **real-agent-team-writing-skill** |
+| **想体验真正的多 Agent 协作** | ⭐ **real-agent-team-writing-skill**（方式 A） |
 | **想让每个角色在独立上下文中工作** | ⭐ **real-subagent-writing-skills** |
+| **想让每个 Agent 拥有精确工具集** | ⭐⭐ **custom-agent-article-team**（方式 B） |
 
 ---
 
