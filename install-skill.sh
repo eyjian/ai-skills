@@ -360,6 +360,19 @@ prepare_source_repo
 mkdir -p "$TARGET_DIR"
 TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 
+# 防止 TARGET_DIR 嵌套：如果当前目录已经在 .codebuddy/skills 内部，
+# 且 TARGET_DIR 是默认的相对路径 .codebuddy/skills，会导致嵌套安装。
+# 检测并警告用户。
+if [[ "$TARGET_DIR" == *".codebuddy/skills/"*".codebuddy/skills"* ]] || \
+   [[ "$TARGET_DIR" == *".codebuddy/skills/.codebuddy"* ]]; then
+  echo "⚠️  检测到目标目录可能存在嵌套：$TARGET_DIR"
+  echo "   这通常是因为当前工作目录已经在 .codebuddy/skills 内部。"
+  echo "   建议先 cd 到项目根目录再执行安装，或用 --target 指定正确的路径。"
+  echo ""
+  read -r -p "是否继续安装到该目录？[y/N] " confirm
+  [[ "$confirm" =~ ^[Yy]$ ]] || exit 1
+fi
+
 for install_name in "${FINAL_TARGETS[@]}"; do
   install_target "$install_name"
 done
