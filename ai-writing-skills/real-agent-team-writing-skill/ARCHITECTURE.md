@@ -152,6 +152,16 @@ CodeBuddy 的 `task` 工具要求 `subagent_name` 匹配已注册的 Agent 类�
 cp -r real-agent-team-writing-skill/article-team .codebuddy/skills/
 ```
 
+## 与方式 B（custom-agent-article-team）的关键区别
+
+| 维度 | 本方案（方式 A：借用内置 coder） | 方式 B（自定义 Subagent） |
+|------|-------------------------------|------------------------|
+| **subagent_name** | 统一用内置 `"coder"` | 各角色自定义注册名（`"article-scout"` 等） |
+| **工具集** | 所有角色共享 coder 完整工具集 | 每个角色精确声明所需 tools |
+| **System Prompt** | 协调者 `read_file` 读取注入 | 平台自动加载 |
+| **安装步骤** | 一步：复制 Skill 包 | 两步：先注册 agents，再安装 Skill |
+| **agents/ 目录角色** | 纯 prompt 文本素材（无 frontmatter） | 自定义 Subagent 注册文件（有 frontmatter） |
+
 ## 维护原则
 
 - 新增领域时修改本包的 `domain-profiles.json`
