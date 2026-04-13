@@ -1,0 +1,525 @@
+{
+  "version": "1.0.0",
+  "principles": [
+    "新增或细化技术栈时，优先修改本配置文件，而不是在各个角色 prompt 中重复追加硬编码规则。",
+    "子画像通过 inherits_from 继承基础画像；角色消费画像时，先合并父画像，再叠加子画像。",
+    "角色必须同时区分 project_type 和 effective_profile：前者表示项目真实类型，后者表示当前执行应采用的画像。"
+  ],
+  "merge_policy": {
+    "scalar": "子画像覆盖父画像",
+    "array": "父画像与子画像顺序合并并去重",
+    "object": "递归深度合并"
+  },
+  "runtime_contract": {
+    "must_resolve_before_work": [
+      "project_type",
+      "effective_profile",
+      "resolved_stack",
+      "has_frontend",
+      "default_test_framework",
+      "role_focus"
+    ],
+    "field_explanations": {
+      "project_type": "项目真实类型，例如 go-kratos-web、go-kratos-api、python-web、node-web、generic。",
+      "effective_profile": "当前执行应采用的画像；当用户明确指定技术栈时，以用户为准。",
+      "resolved_stack": "解析后的完整技术栈信息，包含后端和前端（如适用）的框架、库、工具链。",
+      "has_frontend": "当前项目是否包含前端，决定是否派发 frontend-dev Agent。",
+      "default_test_framework": "默认测试框架，后端和前端分别指定。",
+      "role_focus": "当前角色在该画像下应优先关注的事项。"
+    }
+  },
+  "router": {
+    "default_project_type": "generic",
+    "default_effective_profile": "generic",
+    "resolution_order": [
+      "先尊重用户明确指定的技术栈、框架或语言约束。",
+      "再依据 profiles[*].signals 识别 project_type。",
+      "若命中多个画像，选最具体的（如 go-kratos-web 优先于 generic）。",
+      "若用户明确指定了技术栈但本配置无对应画像，effective_profile 回退 generic，但 resolved_stack 保留用户指定。",
+      "若拿不准或主题过于模糊，project_type 与 effective_profile 一律回退 generic。"
+    ],
+    "user_overrides": {
+      "force_no_frontend": [
+        "不需要前端",
+        "纯后端",
+        "只做 API",
+        "CLI 工具"
+      ],
+      "force_with_frontend": [
+        "全栈",
+        "带前端",
+        "需要页面",
+        "Web 应用"
+      ]
+    }
+  },
+  "profiles": {
+    "generic": {
+      "display_name": "通用",
+      "inherits_from": null,
+      "has_frontend": true,
+      "signals": {
+        "keywords": []
+      },
+      "stack": {
+        "backend": {
+          "language": "根据用户指定或项目上下文推断",
+          "framework": "根据语言选择合适的框架"
+        },
+        "frontend": {
+          "framework": "根据用户指定或项目上下文推断"
+        }
+      },
+      "coding_standards": {
+        "general": [
+          "代码必须通过对应语言的 linter 检查",
+          "敏感信息不硬编码，使用环境变量或配置文件",
+          "错误处理不能忽略，必须有明确的错误传播策略",
+          "数据库操作使用 migration，不直接 DDL"
+        ]
+      },
+      "environment": {
+        "infrastructure": "使用 Docker Compose 管理依赖服务",
+        "command_wrapper": "使用 Makefile 封装常用命令"
+      },
+      "role_focus": {
+        "analyst": {
+          "priorities": [
+            "准确理解用户需求，区分功能需求和非功能需求。",
+            "每个功能需求必须有可验证的验收标准。"
+          ],
+          "avoid": [
+            "不要做技术选型决策，那是 architect 的职责。",
+            "不要在 PRD 中包含实现细节。"
+          ]
+        },
+        "architect": {
+          "priorities": [
+            "技术选型必须给出理由，而不是简单罗列。",
+            "模块划分要清晰，依赖方向单一。",
+            "必须输出可用的 docker-compose.yaml 和 Makefile。"
+          ],
+          "must_check": [
+            "每个功能需求映射到至少 1 个开发任务",
+            "每个 API 有完整的 Request/Response 定义",
+            "并行任务明确标注"
+          ],
+          "avoid": [
+            "不要直接写业务代码。",
+            "不要跳过环境规划。"
+          ]
+        },
+        "backend-dev": {
+          "priorities": [
+            "先搭建环境，验证能跑，再开始编码。",
+            "遵循 TDD：先写测试（RED）→ 最少代码通过（GREEN）→ 重构。",
+            "每个 API 必须有单元测试。"
+          ],
+          "must_check": [
+            "环境初始化完成后服务能正常启动",
+            "所有测试通过"
+          ],
+          "avoid": [
+            "不要跳过环境验证直接写代码。",
+            "不要跳过单元测试。",
+            "不要硬编码配置。"
+          ]
+        },
+        "frontend-dev": {
+          "priorities": [
+            "先搭建环境，验证 dev server 能跑，再开始编码。",
+            "优先对接后端 API，后端未就绪时使用 Mock。"
+          ],
+          "must_check": [
+            "环境初始化完成后 dev server 能正常启动",
+            "API 对接状态在完成报告中列明"
+          ],
+          "avoid": [
+            "不要跳过环境验证。",
+            "不要在没有 API 契约的情况下猜测接口格式。"
+          ]
+        },
+        "code-reviewer": {
+          "priorities": [
+            "功能正确性优先于代码风格。",
+            "安全性问题是阻断项。"
+          ],
+          "must_check": [
+            "是否有单元测试",
+            "是否有安全隐患",
+            "是否符合架构设计"
+          ],
+          "avoid": [
+            "不要直接修改代码，只标问题和建议。"
+          ]
+        },
+        "tester": {
+          "priorities": [
+            "基于 PRD 验收标准编写测试，确保每个 AC 有对应用例。",
+            "致命 bug 立即通知开发者。"
+          ],
+          "must_check": [
+            "每个 FR 的每个 AC 至少有 1 个测试用例",
+            "测试报告包含验收标准核对表"
+          ],
+          "avoid": [
+            "不要只测试正常路径，必须覆盖边界和异常。"
+          ]
+        }
+      }
+    },
+    "go-kratos-web": {
+      "display_name": "Go Kratos 全栈",
+      "inherits_from": "generic",
+      "has_frontend": true,
+      "signals": {
+        "keywords": [
+          "Go", "Golang", "Kratos", "gRPC", "Protobuf", "proto",
+          "微服务", "GORM", "go-redis", "sarama", "Kafka",
+          "Wire", "etcd", "全栈", "Vue"
+        ]
+      },
+      "stack": {
+        "backend": {
+          "language": "Go",
+          "version": "1.21+",
+          "framework": "Kratos v2",
+          "rpc": "gRPC + HTTP（Kratos 双协议）",
+          "api_definition": "Protobuf",
+          "orm": "GORM",
+          "cache": "go-redis (github.com/redis/go-redis/v9)",
+          "queue": "sarama (github.com/IBM/sarama)",
+          "di": "Google Wire",
+          "registry": "etcd（默认，可换 Polaris/Nacos/Consul/K8s）",
+          "config": "Kratos config（本地 YAML + 远程配置接口）",
+          "log": "zap / Go slog",
+          "metrics": "Prometheus",
+          "tracing": "OpenTelemetry",
+          "test_framework": "Go testing + testify",
+          "code_gen": "kratos proto client/server + protoc + Wire",
+          "lint": "gofmt + golangci-lint"
+        },
+        "frontend": {
+          "framework": "Vue 3 (Composition API)",
+          "language": "TypeScript (strict mode)",
+          "version": "Node.js 18+",
+          "build": "Vite",
+          "state": "Pinia",
+          "ui": "Element Plus",
+          "http": "Axios",
+          "router": "Vue Router 4",
+          "test_framework": "Vitest + Vue Test Utils",
+          "e2e": "Playwright",
+          "lint": "ESLint + Prettier"
+        }
+      },
+      "coding_standards": {
+        "backend": [
+          "严格遵循 Kratos 分层：api(proto) → internal/service → internal/biz → internal/data",
+          "biz 层只定义 Repository 接口，禁止 import gorm/go-redis/sarama 等基础设施包",
+          "data 层实现 Repository 接口，import 基础设施包",
+          "使用 Wire 管理依赖注入，不手动 new 结构体",
+          "Protobuf 字段命名 snake_case，Go 代码 gofmt + golangci-lint",
+          "错误处理使用 Kratos errors 包，统一错误码",
+          "配置通过 Kratos config 读取，不硬编码"
+        ],
+        "frontend": [
+          "使用 <script setup lang=\"ts\"> 语法（Composition API），不使用 Options API",
+          "所有组件 props 和 emits 必须有 TypeScript 类型定义",
+          "Pinia store 不直接调用 API，通过 composable 或 service 层封装",
+          "Axios 请求统一封装，包含错误处理和 loading 状态",
+          "路由使用 Vue Router 4 的 defineRoute 或 routes 数组",
+          "使用 Element Plus 组件，不自造基础组件"
+        ]
+      },
+      "environment": {
+        "tools": {
+          "go": "1.21+",
+          "protoc": "3.x",
+          "protoc-gen-go": "latest",
+          "protoc-gen-go-grpc": "latest",
+          "protoc-gen-go-http": "latest (Kratos)",
+          "kratos_cli": "go install github.com/go-kratos/kratos/cmd/kratos/v2@latest",
+          "wire": "go install github.com/google/wire/cmd/wire@latest",
+          "golangci-lint": "latest",
+          "node": "18+",
+          "npm_or_pnpm": "pnpm 推荐"
+        },
+        "infrastructure": {
+          "database": "MySQL 8.0+ 或 PostgreSQL 15+",
+          "cache": "Redis 7+",
+          "queue": "Kafka 3.x + ZooKeeper（或 KRaft 模式）",
+          "registry": "etcd 3.5+",
+          "observability": "Prometheus + Grafana + Jaeger（可选）"
+        },
+        "docker_compose_services": [
+          "mysql / postgresql",
+          "redis",
+          "kafka + zookeeper",
+          "etcd"
+        ],
+        "makefile_commands": {
+          "init": "安装工具链 + 启动 Docker Compose + 初始化数据库",
+          "proto": "kratos proto client + kratos proto server",
+          "wire": "cd cmd/server && wire",
+          "run": "kratos run",
+          "test": "go test ./... -v",
+          "lint": "golangci-lint run",
+          "migrate": "执行数据库迁移",
+          "docker-up": "docker-compose up -d",
+          "docker-down": "docker-compose down"
+        },
+        "backend_init_steps": [
+          "kratos new {project} 初始化项目",
+          "go mod tidy",
+          "编写 .proto 文件定义 API",
+          "kratos proto client + kratos proto server 生成代码",
+          "cd cmd/server && wire 生成依赖注入代码",
+          "创建数据库 + 执行 migration",
+          "kratos run 验证 gRPC + HTTP 双端口启动"
+        ],
+        "frontend_init_steps": [
+          "npm create vue@latest（选择 TypeScript + Pinia + Vue Router + Vitest）",
+          "pnpm add element-plus axios",
+          "配置 vite.config.ts 代理（/api → 后端 HTTP 端口）",
+          "配置 ESLint + Prettier",
+          "pnpm dev 验证 dev server 启动"
+        ]
+      },
+      "project_structure": {
+        "backend": [
+          "api/proto/         — Protobuf 定义（gRPC + HTTP 路由注解）",
+          "cmd/server/         — 入口（main.go + wire.go + wire_gen.go）",
+          "configs/            — config.yaml",
+          "internal/biz/       — 业务逻辑 + Repository 接口",
+          "internal/data/      — Repository 实现（GORM/go-redis/sarama）",
+          "internal/service/   — proto service 实现",
+          "internal/server/    — gRPC/HTTP 服务器 + 中间件",
+          "internal/conf/      — conf.proto（配置结构体）",
+          "pkg/                — 可对外复用的包",
+          "migrations/         — 数据库迁移文件",
+          "tests/              — 集成测试",
+          "docker-compose.yaml — 依赖服务",
+          "Makefile            — 命令封装",
+          "README.md           — 快速开始",
+          "go.mod / go.sum"
+        ],
+        "frontend": [
+          "src/views/          — 页面组件",
+          "src/components/     — 通用组件",
+          "src/api/            — API 请求封装（Axios）",
+          "src/stores/         — Pinia 状态管理",
+          "src/router/         — Vue Router 路由定义",
+          "src/composables/    — 可复用组合式函数",
+          "src/types/          — TypeScript 类型定义",
+          "src/utils/          — 工具函数",
+          "src/App.vue",
+          "src/main.ts",
+          "vite.config.ts",
+          "tsconfig.json",
+          "package.json"
+        ]
+      },
+      "role_focus": {
+        "analyst": {
+          "priorities": [
+            "区分 gRPC 内部服务间调用和 HTTP 外部客户端调用的需求。",
+            "非功能需求要关注并发量、响应时间（gRPC 通常比 HTTP 更快）。",
+            "数据模型概要要考虑 GORM 的表结构映射。"
+          ],
+          "must_check": [
+            "是否需要异步消息处理（Kafka 场景）",
+            "是否需要缓存策略（Redis 场景）",
+            "是否需要服务间调用（gRPC 场景）"
+          ],
+          "avoid": [
+            "不要在需求中指定具体的 Protobuf 字段类型，那是 architect 的事。"
+          ]
+        },
+        "architect": {
+          "priorities": [
+            "严格遵循 Kratos 分层架构：api(proto) → internal/service → internal/biz → internal/data。",
+            "API 必须同时定义 gRPC method 和 HTTP 路由注解（Kratos proto HTTP annotation）。",
+            "数据库设计要考虑 GORM 的约定（表名、字段类型、关联关系）。",
+            "任务分解中明确标注前后端并行任务。",
+            "必须输出 docker-compose.yaml（MySQL/Redis/Kafka/etcd）、Makefile 和 README.md。"
+          ],
+          "must_check": [
+            "Protobuf 定义是否完整（message + service + HTTP annotation）",
+            "biz 层 Repository 接口是否定义清楚",
+            "Kratos 标准目录结构是否正确",
+            "docker-compose.yaml 是否包含所有依赖服务",
+            "Makefile 是否覆盖 init/proto/wire/run/test/lint 命令",
+            "README.md 是否包含前置工具安装 + 一键启动步骤"
+          ],
+          "avoid": [
+            "不要在 biz 层设计中引入具体的 GORM 类型。",
+            "不要跳过环境规划（docker-compose/Makefile/README）直接做代码设计。"
+          ]
+        },
+        "backend-dev": {
+          "priorities": [
+            "第一步必须是环境初始化：kratos new → go mod tidy → proto 生成 → Wire 生成 → migration → 验证双端口。",
+            "严格遵循 Kratos biz/data 分层：biz 层只定义 Repository 接口，data 层用 GORM/go-redis/sarama 实现。",
+            "使用 Wire 管理依赖注入，不手动 new 结构体。",
+            "遵循 TDD：先写测试 → 最少代码通过 → 重构。"
+          ],
+          "must_check": [
+            "biz 层文件中不含 import \"gorm.io\" / \"github.com/redis\" / \"github.com/IBM/sarama\"",
+            "每个 API 端点有对应的单元测试",
+            "Wire provider 和 injector 正确配置",
+            "kratos proto 生成的代码没有被手动修改",
+            "数据库使用 migration 文件，不直接 DDL",
+            "Kafka 消费者通过 sarama ConsumerGroup 正确注册",
+            "Redis 操作通过 go-redis 客户端，key 命名有统一前缀"
+          ],
+          "avoid": [
+            "禁止在 biz 层 import 任何基础设施包（gorm/redis/sarama/sql）。",
+            "禁止硬编码数据库连接串、Redis 地址、Kafka broker 地址。",
+            "禁止跳过环境验证直接写业务代码。",
+            "禁止手动修改 Wire 生成的 wire_gen.go 文件。",
+            "禁止跳过单元测试。"
+          ]
+        },
+        "frontend-dev": {
+          "priorities": [
+            "第一步必须是环境初始化：npm create vue@latest → 依赖安装 → Vite 代理配置 → ESLint → 验证 dev server。",
+            "使用 Vue 3 Composition API（<script setup lang=\"ts\">），不用 Options API。",
+            "Axios 统一封装，对接后端 gRPC-Gateway 暴露的 HTTP API。",
+            "Pinia store 不直接调 API，通过 api/ 层封装。",
+            "组件 props/emits 必须有完整 TypeScript 类型。"
+          ],
+          "must_check": [
+            "所有 .vue 文件使用 <script setup lang=\"ts\">",
+            "API 请求类型与后端 Protobuf 定义一致",
+            "Vite 代理配置正确指向后端 HTTP 端口",
+            "Element Plus 组件正确引入（按需导入或全局导入）",
+            "完成报告列明每个 API 的对接状态"
+          ],
+          "avoid": [
+            "禁止使用 Options API。",
+            "禁止在组件中直接调用 Axios，必须通过 api/ 层。",
+            "禁止跳过环境验证。",
+            "禁止在没有 API 契约的情况下猜测接口格式。"
+          ]
+        },
+        "code-reviewer": {
+          "priorities": [
+            "首要检查 Kratos 分层是否正确：biz 层是否依赖了 data 层实现。",
+            "检查 Protobuf 定义质量：命名规范、HTTP annotation 完整性。",
+            "检查 Wire 依赖注入是否合理：provider 是否正确注册、是否有循环依赖。",
+            "检查 Vue 3 规范：Composition API 使用、TypeScript 类型完整性。",
+            "安全性：SQL 注入（GORM 参数化查询）、XSS（Vue 模板安全）、敏感信息泄露。"
+          ],
+          "must_check": [
+            "biz 层文件不含基础设施 import（gorm/redis/sarama）",
+            "Proto 定义有完整的 HTTP annotation",
+            "Wire provider 正确注册且无循环依赖",
+            "GORM 查询使用参数化方式（不拼接 SQL）",
+            "go-redis key 有统一命名规范",
+            "Vue 组件使用 <script setup lang=\"ts\">",
+            "Pinia store 不直接调用 Axios",
+            "API 请求类型与 Proto 定义一致"
+          ],
+          "avoid": [
+            "不要放过 biz 层依赖 data 实现的问题——这是 Kratos 架构的核心约束。",
+            "不要忽略 Proto 定义与实际 API 实现的不一致。"
+          ]
+        },
+        "tester": {
+          "priorities": [
+            "gRPC 接口测试：验证 Proto 定义与实际响应一致（API 契约测试）。",
+            "GORM Repository 测试：使用 SQLite 内存数据库或 testcontainers 做集成测试。",
+            "Vue 组件测试：使用 Vitest + Vue Test Utils 测试组件渲染和交互。",
+            "E2E 测试：使用 Playwright 测试核心用户流程。",
+            "致命 bug 立即通知对应开发者。"
+          ],
+          "must_check": [
+            "gRPC 响应字段与 Proto 定义完全匹配",
+            "GORM migration 后的表结构与 model 定义一致",
+            "每个 FR 的每个 AC 至少有 1 个测试用例",
+            "测试报告包含验收标准核对表"
+          ],
+          "avoid": [
+            "不要只测试正常路径，必须覆盖边界和异常（空参数、不存在的 ID、并发场景等）。",
+            "不要把集成测试当单元测试写——两者粒度不同。"
+          ]
+        }
+      }
+    },
+    "go-kratos-api": {
+      "display_name": "Go Kratos 纯 API",
+      "inherits_from": "go-kratos-web",
+      "has_frontend": false,
+      "signals": {
+        "keywords": [
+          "纯后端", "API 服务", "微服务", "不需要前端", "后端服务",
+          "gRPC 服务", "内部服务"
+        ]
+      },
+      "role_focus": {
+        "analyst": {
+          "priorities": [
+            "重点关注 API 契约和服务间调用需求。",
+            "不需要考虑前端页面需求，但要考虑 API 文档和调试方式。"
+          ]
+        },
+        "architect": {
+          "priorities": [
+            "不需要设计前端目录结构和前端任务。",
+            "重点关注 gRPC service 定义和服务间调用拓扑。",
+            "如果是纯内部服务，可以不配置 HTTP annotation（只暴露 gRPC）。"
+          ]
+        }
+      }
+    },
+    "python-web": {
+      "display_name": "Python Web（占位）",
+      "inherits_from": "generic",
+      "has_frontend": true,
+      "signals": {
+        "keywords": [
+          "Python", "FastAPI", "Django", "Flask"
+        ]
+      },
+      "stack": {
+        "backend": {
+          "language": "Python",
+          "framework": "FastAPI（推荐）/ Django / Flask",
+          "orm": "SQLAlchemy / Django ORM",
+          "test_framework": "pytest"
+        },
+        "frontend": {
+          "framework": "Vue 3 (Composition API)",
+          "language": "TypeScript",
+          "build": "Vite"
+        }
+      },
+      "note": "此画像为占位骨架，role_focus 沿用 generic。后续版本将细化 Python 特有的编码规范和检视重点。"
+    },
+    "node-web": {
+      "display_name": "Node.js Web（占位）",
+      "inherits_from": "generic",
+      "has_frontend": true,
+      "signals": {
+        "keywords": [
+          "Node", "Node.js", "NestJS", "Express", "Koa", "TypeScript 后端"
+        ]
+      },
+      "stack": {
+        "backend": {
+          "language": "TypeScript / JavaScript",
+          "framework": "NestJS（推荐）/ Express / Koa",
+          "orm": "TypeORM / Prisma",
+          "test_framework": "Jest / Vitest"
+        },
+        "frontend": {
+          "framework": "Vue 3 (Composition API)",
+          "language": "TypeScript",
+          "build": "Vite"
+        }
+      },
+      "note": "此画像为占位骨架，role_focus 沿用 generic。后续版本将细化 Node.js 特有的编码规范和检视重点。"
+    }
+  }
+}
