@@ -19,6 +19,7 @@ usage() {
   real-subagent-writing-skills
   real-ai-writing-skills
   custom-article-team
+  visual-article-team
   article-pipeline
   topic-scout
   outline-architect
@@ -53,6 +54,7 @@ real-article-team
 real-subagent-writing-skills
 real-ai-writing-skills
 custom-article-team
+visual-article-team
 article-pipeline
 topic-scout
 outline-architect
@@ -105,6 +107,9 @@ normalize_target() {
     custom-article-team|custom-agent-article-team)
       echo "custom-article-team"
       ;;
+    visual-article-team|visual-agent-article-team)
+      echo "visual-article-team"
+      ;;
     article-pipeline|article_pipeline|pipeline)
       echo "article-pipeline"
       ;;
@@ -129,7 +134,7 @@ expand_target() {
       printf '%s\n' "real-subagent-writing-skills" "real-article-team"
       ;;
     all)
-      printf '%s\n' "subagent-writing-skills" "article-team" "real-subagent-writing-skills" "real-article-team" "custom-article-team" "dicom-doctor" "rd-team"
+      printf '%s\n' "subagent-writing-skills" "article-team" "real-subagent-writing-skills" "real-article-team" "custom-article-team" "visual-article-team" "dicom-doctor" "rd-team"
       ;;
     *)
       printf '%s\n' "$1"
@@ -272,6 +277,34 @@ install_custom_article_team() {
   echo "  ℹ️  方式 B 需要两步安装：agents 注册 + skill 安装，已自动完成。"
 }
 
+install_visual_article_team() {
+  local base="ai-writing-skills/visual-agent-article-team"
+
+  # 步骤 1：复制 Subagent 注册文件到 .codebuddy/agents/
+  local agents_dir
+  agents_dir="$(cd "$TARGET_DIR/.." && pwd)/agents"
+  mkdir -p "$agents_dir"
+  local agent_md
+  for agent_md in "$SOURCE_REPO/$base/agents/"*.md; do
+    [[ -f "$agent_md" ]] || continue
+    cp "$agent_md" "$agents_dir/"
+  done
+  if add_unique "$agents_dir" "${INSTALLED_PATHS[@]:-}"; then
+    INSTALLED_PATHS+=("$agents_dir")
+  fi
+
+  # 步骤 2：复制 Skill 包（含 server + web + launch.sh）
+  copy_dir "$base/article-team" "article-team"
+
+  # 步骤 3：确保 launch.sh 有执行权限
+  chmod +x "$TARGET_DIR/article-team/launch.sh" 2>/dev/null || true
+
+  echo "  ℹ️  自定义 Subagent 注册文件已复制到：$agents_dir/"
+  echo "  ℹ️  可视化版 Skill 已安装（含 server + web + launch.sh）。"
+  echo "  ℹ️  使用 /article-team 时，可视化服务会自动启动。"
+  echo "  ℹ️  手动启动：bash .codebuddy/skills/article-team/launch.sh"
+}
+
 install_target() {
   case "$1" in
     article-team)
@@ -282,6 +315,9 @@ install_target() {
       ;;
     custom-article-team)
       install_custom_article_team
+      ;;
+    visual-article-team)
+      install_visual_article_team
       ;;
     subagent-writing-skills)
       install_subagent_bundle

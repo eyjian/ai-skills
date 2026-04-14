@@ -99,6 +99,38 @@ team_create(team_name: "rd-team")
 🔧 底层工具链：team_create → task(自定义 subagent) → send_message → team_delete
 ```
 
+紧接着拓扑图，**必须逐一介绍团队成员**（不可跳过）：
+
+```
+👥 团队成员介绍
+
+🔍🟩 analyst（需求分析师）
+  注册名：rd-analyst ｜ 工具集：read_file, write_to_file, web_search, send_message, list_dir
+  职责：将用户模糊需求转化为结构化 PRD，拆解功能需求，定义验收标准
+
+📐🟪 architect（架构设计师）
+  注册名：rd-architect ｜ 工具集：read_file, write_to_file, web_search, send_message, list_dir
+  职责：技术选型、架构设计、接口契约定义、环境规划和任务分解
+
+⚙️🟧 backend-dev（后端开发）
+  注册名：rd-backend-dev ｜ 工具集：read_file, write_to_file, replace_in_file, search_content, send_message, execute_command
+  职责：实现后端代码、环境初始化、TDD 开发、按审查意见改代码
+
+🎨🟦 frontend-dev（前端开发，按需启动）
+  注册名：rd-frontend-dev ｜ 工具集：read_file, write_to_file, replace_in_file, search_content, send_message, execute_command
+  职责：前端页面实现、组件开发、API 对接（仅 has_frontend=true 时派发）
+
+🛡️🟥 code-reviewer（代码检视，拥有自主退回权）
+  注册名：rd-code-reviewer ｜ 工具集：read_file, search_content, send_message, list_dir
+  职责：审查代码质量、架构一致性、安全性和测试覆盖，只标问题不改代码
+
+🧪🟨 tester（测试工程师，拥有自主报 bug 权）
+  注册名：rd-tester ｜ 工具集：read_file, write_to_file, replace_in_file, search_content, send_message, execute_command
+  职责：编写测试计划和测试代码、执行测试、生成测试报告、验证 bug 修复
+
+每个成员都是在 .codebuddy/agents/ 中注册的自定义 Subagent，拥有精确的工具集声明。
+```
+
 ---
 
 ## 第 2 步：根据模式派发 Agent

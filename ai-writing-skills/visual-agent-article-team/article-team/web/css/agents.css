@@ -1,0 +1,63 @@
+/* agents.css — 6 个角色的配色方案、状态样式 */
+
+/* ─── 角色配色 ─── */
+
+[data-agent="team-lead"] .avatar, [data-agent="team-lead"] .sender-name { color: var(--accent-blue); }
+[data-agent="team-lead"] .status-light.active { background: var(--accent-blue); box-shadow: 0 0 6px var(--accent-blue); }
+[data-agent="team-lead"] .desk-lamp.on { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+
+[data-agent="scout"] .avatar, [data-agent="scout"] .sender-name { color: var(--accent-green); }
+[data-agent="scout"] .status-light.active { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+[data-agent="scout"] .desk-lamp.on { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+
+[data-agent="architect"] .avatar, [data-agent="architect"] .sender-name { color: var(--accent-purple); }
+[data-agent="architect"] .status-light.active { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
+[data-agent="architect"] .desk-lamp.on { background: var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple); }
+
+[data-agent="writer"] .avatar, [data-agent="writer"] .sender-name { color: var(--accent-orange); }
+[data-agent="writer"] .status-light.active { background: var(--accent-orange); box-shadow: 0 0 6px var(--accent-orange); }
+[data-agent="writer"] .desk-lamp.on { background: var(--accent-orange); box-shadow: 0 0 10px var(--accent-orange); }
+
+[data-agent="reviewer"] .avatar, [data-agent="reviewer"] .sender-name { color: var(--accent-red); }
+[data-agent="reviewer"] .status-light.active { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
+[data-agent="reviewer"] .desk-lamp.on { background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
+
+[data-agent="polisher"] .avatar, [data-agent="polisher"] .sender-name { color: var(--accent-yellow); }
+[data-agent="polisher"] .status-light.active { background: var(--accent-yellow); box-shadow: 0 0 6px var(--accent-yellow); }
+[data-agent="polisher"] .desk-lamp.on { background: var(--accent-yellow); box-shadow: 0 0 10px var(--accent-yellow); }
+
+/* ─── 角色聊天气泡配色 ─── */
+
+.chat-bubble[data-from="team-lead"] { border-left: 3px solid var(--accent-blue); }
+.chat-bubble[data-from="scout"] { border-left: 3px solid var(--accent-green); }
+.chat-bubble[data-from="architect"] { border-left: 3px solid var(--accent-purple); }
+.chat-bubble[data-from="writer"] { border-left: 3px solid var(--accent-orange); }
+.chat-bubble[data-from="reviewer"] { border-left: 3px solid var(--accent-red); }
+.chat-bubble[data-from="polisher"] { border-left: 3px solid var(--accent-yellow); }
+
+/* ─── 角色状态样式 ─── */
+
+.workstation.idle .agent-character { animation: idle-sway 3s ease-in-out infinite; }
+.workstation.idle .desk-lamp { background: #444; }
+.workstation.idle .status-light { background: #555; }
+
+.workstation.active .agent-character { animation: typing 0.5s ease-in-out infinite; }
+.workstation.active .desk-lamp { background: currentColor; box-shadow: 0 0 12px currentColor; }
+.workstation.active .status-light { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+.workstation.active .desk { box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2); }
+
+.workstation.completed .agent-character { animation: none; }
+.workstation.completed .desk-lamp { background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
+.workstation.completed .status-light { background: var(--accent-blue); box-shadow: 0 0 6px var(--accent-blue); }
+
+.workstation.talking .agent-character { animation: talking-bob 0.8s ease-in-out infinite; }
+
+/* ─── 完成标记 ─── */
+
+.workstation .completion-badge {
+    position: absolute;
+    top: -5px;
+    right: 15px;
+    font-size: 24px;
+    animation: checkmark-bounce 0.5s ease;
+}

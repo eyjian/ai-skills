@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Team 虚拟办公室</title>
+    <link rel="stylesheet" href="/static/css/office.css">
+    <link rel="stylesheet" href="/static/css/agents.css">
+    <link rel="stylesheet" href="/static/css/animations.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部信息栏 -->
+        <header id="header">
+            <div class="header-left">
+                <h1>🏢 Agent Team 虚拟办公室</h1>
+                <span id="team-name" class="team-badge"></span>
+            </div>
+            <div class="header-right">
+                <span id="connection-status" class="status-dot disconnected"></span>
+                <button id="mode-toggle" class="btn btn-mode" title="切换模式">
+                    <span class="mode-icon">🔴</span>
+                    <span class="mode-label">实时</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主体区域 -->
+        <main id="main-content">
+            <!-- 虚拟办公室（上方 60%） -->
+            <section id="office-area">
+                <div id="office-scene">
+                    <!-- 办公室背景 -->
+                    <div id="office-bg"></div>
+
+                    <!-- 工位容器 -->
+                    <div id="workstations">
+                        <!-- scout 工位 -->
+                        <div class="workstation" data-agent="scout" id="ws-scout">
+                            <div class="desk">
+                                <div class="desk-lamp"></div>
+                                <div class="desk-items"></div>
+                            </div>
+                            <div class="agent-character" id="char-scout"></div>
+                            <div class="agent-nameplate">
+                                <span class="status-light"></span>
+                                <span class="agent-label">🔎 scout</span>
+                            </div>
+                            <div class="agent-task-text"></div>
+                        </div>
+
+                        <!-- architect 工位 -->
+                        <div class="workstation" data-agent="architect" id="ws-architect">
+                            <div class="desk">
+                                <div class="desk-lamp"></div>
+                                <div class="desk-items"></div>
+                            </div>
+                            <div class="agent-character" id="char-architect"></div>
+                            <div class="agent-nameplate">
+                                <span class="status-light"></span>
+                                <span class="agent-label">📐 architect</span>
+                            </div>
+                            <div class="agent-task-text"></div>
+                        </div>
+
+                        <!-- main(协调者) 工位 -->
+                        <div class="workstation workstation-main" data-agent="team-lead" id="ws-main">
+                            <div class="desk desk-main">
+                                <div class="desk-lamp"></div>
+                                <div class="desk-items"></div>
+                            </div>
+                            <div class="agent-character" id="char-main"></div>
+                            <div class="agent-nameplate">
+                                <span class="status-light"></span>
+                                <span class="agent-label">🧭 main</span>
+                            </div>
+                            <div class="agent-task-text"></div>
+                        </div>
+
+                        <!-- writer 工位 -->
+                        <div class="workstation" data-agent="writer" id="ws-writer">
+                            <div class="desk">
+                                <div class="desk-lamp"></div>
+                                <div class="desk-items"></div>
+                            </div>
+                            <div class="agent-character" id="char-writer"></div>
+                            <div class="agent-nameplate">
+                                <span class="status-light"></span>
+                                <span class="agent-label">📝 writer</span>
+                            </div>
+                            <div class="agent-task-text"></div>
+                        </div>
+
+                        <!-- reviewer 工位 -->
+                        <div class="workstation" data-agent="reviewer" id="ws-reviewer">
+                            <div class="desk">
+                                <div class="desk-lamp"></div>
+                                <div class="desk-items"></div>
+                            </div>
+                            <div class="agent-character" id="char-reviewer"></div>
+                            <div class="agent-nameplate">
+                                <span class="status-light"></span>
+                                <span class="agent-label">🛡️ reviewer</span>
+                            </div>
+                            <div class="agent-task-text"></div>
+                        </div>
+
+                        <!-- polisher 工位 -->
+                        <div class="workstation" data-agent="polisher" id="ws-polisher">
+                            <div class="desk">
+                                <div class="desk-lamp"></div>
+                                <div class="desk-items"></div>
+                            </div>
+                            <div class="agent-character" id="char-polisher"></div>
+                            <div class="agent-nameplate">
+                                <span class="status-light"></span>
+                                <span class="agent-label">✨ polisher</span>
+                            </div>
+                            <div class="agent-task-text"></div>
+                        </div>
+                    </div>
+
+                    <!-- 通信动画层 -->
+                    <svg id="comm-layer" class="comm-overlay"></svg>
+                </div>
+            </section>
+
+            <!-- 分隔条（可拖动） -->
+            <div id="resize-handle"></div>
+
+            <!-- 通信面板（下方 40%） -->
+            <section id="chat-panel">
+                <div class="chat-header">
+                    <span class="chat-title">💬 通信流</span>
+                    <div class="chat-filters" id="chat-filters">
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                    </div>
+                    <button id="scroll-bottom-btn" class="btn btn-small" style="display:none">↓ 最新</button>
+                </div>
+                <div id="chat-messages" class="chat-messages"></div>
+            </section>
+        </main>
+
+        <!-- 回放控制条 -->
+        <footer id="replay-bar">
+            <div class="replay-controls">
+                <button id="btn-step-back" class="replay-btn" title="上一个事件">◀◀</button>
+                <button id="btn-play-pause" class="replay-btn replay-btn-main" title="播放/暂停">▶️</button>
+                <button id="btn-step-forward" class="replay-btn" title="下一个事件">▶▶</button>
+            </div>
+            <div class="replay-timeline">
+                <span id="time-current" class="time-label">00:00</span>
+                <input type="range" id="timeline-slider" min="0" max="100" value="0" class="timeline-slider">
+                <span id="time-total" class="time-label">00:00</span>
+            </div>
+            <div class="replay-speed">
+                <button class="speed-btn active" data-speed="1">1x</button>
+                <button class="speed-btn" data-speed="2">2x</button>
+                <button class="speed-btn" data-speed="4">4x</button>
+                <button class="speed-btn" data-speed="8">8x</button>
+            </div>
+            <button id="btn-event-list" class="replay-btn" title="事件列表">📋</button>
+        </footer>
+
+        <!-- 事件列表侧边栏 -->
+        <aside id="event-sidebar" class="sidebar hidden">
+            <div class="sidebar-header">
+                <h3>📋 事件列表</h3>
+                <button id="close-sidebar" class="btn btn-small">✕</button>
+            </div>
+            <div id="event-list" class="event-list"></div>
+        </aside>
+    </div>
+
+    <script src="/static/js/websocket-client.js"></script>
+    <script src="/static/js/office-renderer.js"></script>
+    <script src="/static/js/agent-controller.js"></script>
+    <script src="/static/js/message-animator.js"></script>
+    <script src="/static/js/timeline-player.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

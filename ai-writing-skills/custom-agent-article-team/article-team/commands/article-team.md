@@ -112,6 +112,34 @@ team_create(
 🔧 底层工具链：team_create → task(自定义 subagent) → send_message → team_delete
 ```
 
+紧接着拓扑图，**必须逐一介绍团队成员**（不可跳过）：
+
+```
+👥 团队成员介绍
+
+🔎🟩 scout（选题侦察员）
+  注册名：article-scout ｜ 工具集：read_file, web_search, send_message, list_dir
+  职责：搜索热点趋势，提供选题建议和差异化切入角度
+
+📐🟪 architect（大纲架构师）
+  注册名：article-architect ｜ 工具集：read_file, web_search, send_message
+  职责：设计文章结构和大纲，确保逻辑主线清晰
+
+📝🟧 writer（初稿写手）
+  注册名：article-writer ｜ 工具集：read_file, write_to_file, replace_in_file, search_content, send_message, web_search
+  职责：按大纲撰写 Markdown 初稿，落地成文
+
+🛡️🟥 reviewer（技术审稿人）
+  注册名：article-reviewer ｜ 工具集：read_file, web_search, search_content, send_message
+  职责：审查事实准确性和逻辑完整性，拥有自主退回权
+
+✨🟨 polisher（终稿润色师）
+  注册名：article-polisher ｜ 工具集：read_file, replace_in_file, search_content, send_message
+  职责：最终打磨文字、降低 AI 味、规范格式
+
+每个成员都是在 .codebuddy/agents/ 中注册的自定义 Subagent，拥有精确的工具集声明。
+```
+
 ---
 
 ## 第 4 步：根据模式派发首个 Agent

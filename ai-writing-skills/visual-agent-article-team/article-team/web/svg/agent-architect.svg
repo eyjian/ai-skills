@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+  <!-- architect 架构师：紫色系，眼镜 -->
+  <g class="body">
+    <rect x="18" y="38" width="24" height="28" rx="6" fill="#8B5CF6"/>
+    <rect x="20" y="40" width="20" height="8" rx="3" fill="#7C3AED"/>
+  </g>
+  <g class="head">
+    <circle cx="30" cy="22" r="14" fill="#fdd9b5"/>
+    <!-- 头发 -->
+    <path d="M16 16 Q20 6, 30 8 Q40 6, 44 16" fill="#2d1b4e" stroke="none"/>
+    <!-- 眼镜 -->
+    <circle cx="24" cy="21" r="5" fill="none" stroke="#8B5CF6" stroke-width="1.5"/>
+    <circle cx="36" cy="21" r="5" fill="none" stroke="#8B5CF6" stroke-width="1.5"/>
+    <line x1="29" y1="21" x2="31" y2="21" stroke="#8B5CF6" stroke-width="1.5"/>
+    <!-- 眼睛 -->
+    <circle cx="24" cy="22" r="1.5" fill="#333"/>
+    <circle cx="36" cy="22" r="1.5" fill="#333"/>
+    <!-- 嘴 -->
+    <line x1="27" y1="29" x2="33" y2="29" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <!-- 三角尺 -->
+  <g class="accessory">
+    <polygon points="46,38 58,58 34,58" fill="none" stroke="#8B5CF6" stroke-width="2"/>
+    <line x1="40" y1="58" x2="52" y2="58" stroke="#7C3AED" stroke-width="1"/>
+  </g>
+</svg>

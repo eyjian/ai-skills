@@ -1,0 +1,218 @@
+/* animations.css — 所有关键帧动画定义 */
+
+/* ─── 空闲摆动 ─── */
+@keyframes idle-sway {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(2deg); }
+    75% { transform: rotate(-2deg); }
+}
+
+/* ─── 打字动画 ─── */
+@keyframes typing {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+/* ─── 说话点头 ─── */
+@keyframes talking-bob {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-3px) scale(1.02); }
+}
+
+/* ─── 对勾弹跳 ─── */
+@keyframes checkmark-bounce {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ─── 消息飞入（从上淡入） ─── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── 纸飞机飞行 ─── */
+@keyframes message-fly {
+    0% {
+        opacity: 1;
+        offset-distance: 0%;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        offset-distance: 100%;
+    }
+}
+
+/* ─── 任务卡飞入 ─── */
+@keyframes card-fly {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ─── 工位亮灯 ─── */
+@keyframes lamp-glow {
+    0% { box-shadow: 0 0 0 transparent; }
+    100% { box-shadow: 0 0 20px currentColor; }
+}
+
+/* ─── 气泡弹出 ─── */
+@keyframes bubble-pop {
+    0% { transform: scale(0) translateY(10px); opacity: 0; }
+    60% { transform: scale(1.1) translateY(-5px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ─── 气泡淡出 ─── */
+@keyframes bubble-fade {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-15px); }
+}
+
+/* ─── 飞线发光 ─── */
+@keyframes line-glow {
+    0% { stroke-opacity: 0; }
+    20% { stroke-opacity: 0.8; }
+    100% { stroke-opacity: 0; }
+}
+
+/* ─── 退回文件飞行 ─── */
+@keyframes reject-fly {
+    0% { opacity: 1; offset-distance: 0%; transform: rotate(0deg); }
+    50% { transform: rotate(-15deg); }
+    100% { opacity: 0; offset-distance: 100%; transform: rotate(0deg); }
+}
+
+/* ─── 伸懒腰 ─── */
+@keyframes stretch {
+    0% { transform: scaleY(1); }
+    30% { transform: scaleY(1.1) translateY(-5px); }
+    60% { transform: scaleY(1.05) translateY(-2px); }
+    100% { transform: scaleY(1) translateY(0); }
+}
+
+/* ─── 脉冲 ─── */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+/* ─── 活动气泡弹入 ─── */
+@keyframes activity-bubble-in {
+    0% { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.9); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* ─── 活动气泡淡出 ─── */
+@keyframes activity-bubble-out {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+
+/* ─── 活动日志条目滑入 ─── */
+@keyframes log-slide-in {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── 纸飞机元素样式 ─── */
+.paper-plane {
+    position: absolute;
+    font-size: 20px;
+    pointer-events: none;
+    z-index: 20;
+    animation: message-fly 1.2s ease-in-out forwards;
+}
+
+/* ─── 对话气泡覆盖 ─── */
+.speech-bubble {
+    position: absolute;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 15;
+    pointer-events: none;
+    animation: bubble-pop 0.4s ease forwards;
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.speech-bubble.fading {
+    animation: bubble-fade 0.5s ease forwards;
+}
+
+/* ─── 任务卡 ─── */
+.task-card {
+    position: absolute;
+    width: 40px;
+    height: 30px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 15;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    animation: card-fly 0.8s ease forwards;
+}
+
+/* ─── 讨论飞线虚线发光 ─── */
+@keyframes dashed-line-glow {
+    0% { stroke-opacity: 0; }
+    15% { stroke-opacity: 0.7; }
+    50% { stroke-opacity: 0.9; }
+    100% { stroke-opacity: 0; }
+}
+
+/* ─── 讨论对话气泡样式 ─── */
+.speech-bubble.speech-discussion {
+    border-color: var(--accent-purple);
+    background: rgba(139, 92, 246, 0.15);
+    border-style: dashed;
+    animation: discuss-bounce 0.5s ease forwards;
+}
+
+/* ─── 知会通知气泡样式 ─── */
+.speech-bubble.speech-notification {
+    border-color: #64748B;
+    background: rgba(100, 116, 139, 0.12);
+    border-style: dotted;
+    opacity: 0.8;
+    font-size: 10px;
+    animation: notify-float 0.6s ease forwards;
+}
+
+/* ─── 讨论气泡弹跳 ─── */
+@keyframes discuss-bounce {
+    0% { transform: scale(0) translateY(10px); opacity: 0; }
+    40% { transform: scale(1.15) translateY(-8px); opacity: 1; }
+    70% { transform: scale(0.95) translateY(-2px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ─── 通知飘入 ─── */
+@keyframes notify-float {
+    0% { opacity: 0; transform: translateX(20px) translateY(0); }
+    60% { opacity: 0.8; transform: translateX(-5px) translateY(-3px); }
+    100% { opacity: 0.8; transform: translateX(0) translateY(0); }
+}

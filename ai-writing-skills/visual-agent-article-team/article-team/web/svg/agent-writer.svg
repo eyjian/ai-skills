@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+  <!-- writer 写手：橙色系，鸭舌帽 -->
+  <g class="body">
+    <rect x="18" y="38" width="24" height="28" rx="6" fill="#F59E0B"/>
+    <rect x="20" y="40" width="20" height="8" rx="3" fill="#D97706"/>
+  </g>
+  <g class="head">
+    <circle cx="30" cy="22" r="14" fill="#fdd9b5"/>
+    <!-- 鸭舌帽 -->
+    <path d="M16 18 Q18 8, 30 10 Q42 8, 44 18" fill="#D97706"/>
+    <rect x="14" y="16" width="26" height="4" rx="2" fill="#B45309"/>
+    <!-- 眼睛 -->
+    <circle cx="24" cy="22" r="2" fill="#333"/>
+    <circle cx="36" cy="22" r="2" fill="#333"/>
+    <!-- 笑 -->
+    <path d="M25 28 Q30 33, 35 28" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <!-- 笔 -->
+  <g class="accessory">
+    <line x1="48" y1="36" x2="52" y2="56" stroke="#F59E0B" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="52" cy="57" r="1.5" fill="#B45309"/>
+  </g>
+  <!-- 咖啡杯 -->
+  <g class="desk-items" transform="translate(2, 50)">
+    <rect x="0" y="6" width="10" height="12" rx="2" fill="#8B6914"/>
+    <path d="M10 8 Q14 8, 14 12 Q14 16, 10 16" fill="none" stroke="#8B6914" stroke-width="1.5"/>
+    <path d="M2 4 Q5 0, 8 4" fill="none" stroke="#aaa" stroke-width="0.8" opacity="0.5"/>
+  </g>
+</svg>

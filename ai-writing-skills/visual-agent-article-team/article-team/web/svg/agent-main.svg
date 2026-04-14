@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+  <!-- main 协调者：蓝色系，戴耳麦 -->
+  <g class="body">
+    <rect x="18" y="38" width="24" height="28" rx="6" fill="#3B82F6"/>
+    <rect x="20" y="40" width="20" height="8" rx="3" fill="#2563EB"/>
+  </g>
+  <g class="head">
+    <circle cx="30" cy="22" r="14" fill="#fdd9b5"/>
+    <!-- 头发 -->
+    <path d="M16 18 Q20 8, 30 10 Q40 8, 44 18" fill="#4a3728" stroke="none"/>
+    <!-- 眼睛 -->
+    <circle cx="24" cy="22" r="2" fill="#333"/>
+    <circle cx="36" cy="22" r="2" fill="#333"/>
+    <!-- 微笑 -->
+    <path d="M24 28 Q30 33, 36 28" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <!-- 耳麦 -->
+  <g class="accessory">
+    <path d="M14 20 Q10 20, 10 26 L12 26" fill="none" stroke="#3B82F6" stroke-width="2"/>
+    <circle cx="11" cy="26" r="3" fill="#3B82F6"/>
+    <line x1="11" y1="29" x2="18" y2="34" stroke="#3B82F6" stroke-width="1.5"/>
+  </g>
+  <!-- 手持平板 -->
+  <g class="left-arm">
+    <rect x="6" y="44" width="12" height="16" rx="2" fill="#555" stroke="#3B82F6" stroke-width="1"/>
+    <rect x="8" y="46" width="8" height="10" rx="1" fill="#2563EB"/>
+  </g>
+</svg>
