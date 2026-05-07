@@ -55,6 +55,22 @@ const App = {
         });
 
         wsClient.on('event', (event) => {
+            // 如果收到新的 team_created 事件且已有旧数据，重置一切（新团队启动）
+            if (event.event === 'team_created' && this._allEvents.length > 0) {
+                const hasOldTeam = this._allEvents.some(e => e.event === 'team_created');
+                if (hasOldTeam) {
+                    console.log('检测到新团队创建，清除旧团队数据');
+                    this._allEvents = [];
+                    AgentController.reset();
+                    MessageAnimator.reset();
+                    const container = document.getElementById('chat-messages');
+                    container.innerHTML = '';
+                    // 更新团队名
+                    if (event.data && event.data.team_name) {
+                        document.getElementById('team-name').textContent = event.data.team_name;
+                    }
+                }
+            }
             this._allEvents.push(event);
             this._handleEvent(event, true);
             TimelinePlayer.updateEventList(this._allEvents);

@@ -234,7 +234,10 @@ class StateEngine:
     # ─── 初始快照加载 ───
 
     def load_snapshot(self, teams_dir: str) -> List[dict]:
-        """扫描 teams 目录，构建初始状态快照，返回所有事件（按时间排序）"""
+        """扫描 teams 目录，构建初始状态快照，返回所有事件（按时间排序）
+        
+        只加载最新创建的团队，避免旧团队残留数据干扰。
+        """
         events: List[dict] = []
         original_callback = self._on_event
 
@@ -251,12 +254,28 @@ class StateEngine:
             team_name = os.path.basename(teams_dir)
             self._load_team(teams_dir, team_name)
         else:
-            # 扫描子目录
+            # 扫描子目录，找出所有有 config.json 的团队
+            team_candidates = []
             for entry in sorted(os.listdir(teams_dir)):
                 team_path = os.path.join(teams_dir, entry)
                 config_path = os.path.join(team_path, "config.json")
                 if os.path.isdir(team_path) and os.path.isfile(config_path):
-                    self._load_team(team_path, entry)
+                    # 读取 createdAt 来判断哪个是最新团队
+                    config = _safe_read_json(config_path)
+                    created_at = ""
+                    if config and isinstance(config, dict):
+                        created_at = config.get("createdAt", "")
+                    team_candidates.append((entry, team_path, created_at))
+
+            if team_candidates:
+                # 按 createdAt 降序排列，只加载最新的团队
+                team_candidates.sort(key=lambda t: t[2], reverse=True)
+                latest = team_candidates[0]
+                logger.info(
+                    "发现 %d 个团队目录，只加载最新团队: %s (createdAt=%s)",
+                    len(team_candidates), latest[0], latest[2],
+                )
+                self._load_team(latest[1], latest[0])
 
         # 恢复回调
         self._on_event = original_callback

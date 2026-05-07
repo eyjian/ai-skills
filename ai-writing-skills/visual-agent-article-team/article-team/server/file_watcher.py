@@ -26,10 +26,12 @@ class _TeamsEventHandler(FileSystemEventHandler):
         self,
         on_config_changed: Optional[Callable] = None,
         on_inbox_changed: Optional[Callable] = None,
+        on_config_deleted: Optional[Callable] = None,
     ):
         super().__init__()
         self._on_config_changed = on_config_changed
         self._on_inbox_changed = on_inbox_changed
+        self._on_config_deleted = on_config_deleted
 
     def _extract_team_name(self, path: str) -> Optional[str]:
         """从路径中提取团队名"""
