@@ -107,4 +107,4 @@ ai-skills/
 
 ## 许可
 
-MIT
+Apache 2.0
